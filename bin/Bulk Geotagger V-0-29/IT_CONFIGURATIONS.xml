@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<ITConfigFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <upload_URL>https://services.inspectools.net/</upload_URL>
+  <triggerChannel>7</triggerChannel>
+  <processorName>Kevin LeBras</processorName>
+  <workOrderNumber>9C8118A7</workOrderNumber>
+  <triggerThreshold>1480</triggerThreshold>
+  <triggerHighOrLow>0</triggerHighOrLow>
+</ITConfigFile>

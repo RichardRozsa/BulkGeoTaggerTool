@@ -10,11 +10,12 @@ using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using System.Threading;
-
+using ITGeoTagger;
 using Emgu.CV.Structure;
 using Emgu.Util.TypeEnum;
 using Emgu.CV.Shape;
 using Manina.Windows.Forms;
+using System.Diagnostics;
 
 namespace MissionPlanner
 {
@@ -59,20 +60,21 @@ namespace MissionPlanner
 
             PATH_TO_ORIGIONALS = BaseDir;
             PostProccessProgresBar = PB;
+            Size ImageSize = new Size(330, 220);
 
             //set up the pass one image box
             Images_pass1.Parent = TAB_PASS_1;
             Images_pass1.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
             Images_pass1.Dock = DockStyle.Fill;
             Images_pass1.SetRenderer(new ImageListViewRenderers.XPRenderer());
-            Images_pass1.ThumbnailSize = new Size(300, 200);
+            Images_pass1.ThumbnailSize = ImageSize;
 
             //set up the pass two image box
             Images_pass2.Parent = TAB_PASS_2;
             Images_pass2.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
             Images_pass2.Dock = DockStyle.Fill;
             Images_pass2.SetRenderer(new ImageListViewRenderers.XPRenderer());
-            Images_pass2.ThumbnailSize = new Size(300, 200);
+            Images_pass2.ThumbnailSize = ImageSize;
             Images_pass2.SortOrder = SortOrder.Ascending;
 
             //set up the pass three image box
@@ -80,28 +82,28 @@ namespace MissionPlanner
             Images_pass3.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
             Images_pass3.Dock = DockStyle.Fill;
             Images_pass3.SetRenderer(new ImageListViewRenderers.XPRenderer());
-            Images_pass3.ThumbnailSize = new Size(300, 200);
+            Images_pass3.ThumbnailSize = ImageSize;
 
             //set up the pass four image box
             Images_pass4.Parent = TAB_PASS_4;
             Images_pass4.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
             Images_pass4.Dock = DockStyle.Fill;
             Images_pass4.SetRenderer(new ImageListViewRenderers.XPRenderer());
-            Images_pass4.ThumbnailSize = new Size(300, 200);
+            Images_pass4.ThumbnailSize = ImageSize;
 
             //set up the pass five image box
             Images_pass5.Parent = TAB_PASS_5;
             Images_pass5.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
             Images_pass5.Dock = DockStyle.Fill;
             Images_pass5.SetRenderer(new ImageListViewRenderers.XPRenderer());
-            Images_pass5.ThumbnailSize = new Size(300, 200);
+            Images_pass5.ThumbnailSize = ImageSize;
 
             //set up the pass extra image box
             Images_extra.Parent = TAB_EXTRA;
             Images_extra.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
             Images_extra.Dock = DockStyle.Fill;
             Images_extra.SetRenderer(new ImageListViewRenderers.XPRenderer());
-            Images_extra.ThumbnailSize = new Size(300, 200);
+            Images_extra.ThumbnailSize = ImageSize;
 
             Images_pass1.ContextMenu = new ContextMenu();
             Images_pass2.ContextMenu = new ContextMenu();
@@ -170,6 +172,14 @@ namespace MissionPlanner
             Images_pass5.SelectionChanged += new EventHandler(ShowAltinLowerLeftCorner);
             Images_extra.SelectionChanged += new EventHandler(ShowAltinLowerLeftCorner);
 
+            Images_pass1.ItemDoubleClick += new ItemDoubleClickEventHandler(ListBoxDoubleClick);
+            Images_pass2.ItemDoubleClick += new ItemDoubleClickEventHandler(ListBoxDoubleClick);
+            Images_pass3.ItemDoubleClick += new ItemDoubleClickEventHandler(ListBoxDoubleClick);
+            Images_pass4.ItemDoubleClick += new ItemDoubleClickEventHandler(ListBoxDoubleClick);
+            Images_pass5.ItemDoubleClick += new ItemDoubleClickEventHandler(ListBoxDoubleClick);
+            Images_extra.ItemDoubleClick += new ItemDoubleClickEventHandler(ListBoxDoubleClick);
+
+
             Images_pass1.ContextMenu.MenuItems.Add(MoveImages.CloneMenu());
             Images_pass1.ContextMenu.MenuItems.Add(ReCrop);
             Images_pass1.ContextMenu.MenuItems.Add(Remove);
@@ -195,139 +205,75 @@ namespace MissionPlanner
             Images_pass5.ContextMenu.MenuItems.Add(Remove.CloneMenu());
             Images_pass5.ContextMenu.MenuItems.Add(AnvancedMenu.CloneMenu());
 
+            LABEL_SITE.Text = this.ImageGroup.SiteName;
+            LABEL_TURBINE.Text = this.ImageGroup.AssetName;
+            LABEL_BLADE.Text = this.ImageGroup.Blade;
+            UpdateImageNumber();
+
         }
-        public void populatePassImages() {
+        async public void populatePassImages() {
             try{
+
             foreach (ImageLocationAndExtraInfo imgInfo in ImageGroup.FullImageList)
             {
-                if (imgInfo.selected)
+                try
                 {
-                    ImageLocationAndExtraInfo tmpInfo = SaveGrayedOutImage(imgInfo, imgInfo.LeftCrop, imgInfo.RightCrop);
-                    imgInfo.PathToGreyImage = tmpInfo.PathToGreyImage;
-                    switch (imgInfo.Type)
+                    if (imgInfo.selected)
                     {
-                        case ImageLocationType.Pass1:
-                            Images_pass1.Items.Add(imgInfo.PathToGreyImage);
-                            break;
-                        case ImageLocationType.Pass2:
-                            Images_pass2.Items.Add(imgInfo.PathToGreyImage);
-                            break;
-                        case ImageLocationType.Pass3:
-                            Images_pass3.Items.Add(imgInfo.PathToGreyImage);
-                            break;
-                        case ImageLocationType.Pass4:
-                            Images_pass4.Items.Add(imgInfo.PathToGreyImage);
-                            break;
-                        case ImageLocationType.Pass5:
-                            Images_pass5.Items.Add(imgInfo.PathToGreyImage);
-                            break;
-                    }
+                        if (!File.Exists(imgInfo.PathToGreyImage))
+                        {
+                            ImageLocationAndExtraInfo tmpInfo = await this.ParentForm.SaveGrayedOutImage(imgInfo, imgInfo.LeftCrop, imgInfo.RightCrop, imgInfo.brightnessCorrection);
+                            imgInfo.PathToGreyImage = tmpInfo.PathToGreyImage;
+                        }
+                        switch (imgInfo.Type)
+                        {
+                            case ImageLocationType.Pass1:
+                                Images_pass1.Items.Add(imgInfo.PathToGreyImage);
+                                break;
+                            case ImageLocationType.Pass2:
+                                Images_pass2.Items.Add(imgInfo.PathToGreyImage);
+                                break;
+                            case ImageLocationType.Pass3:
+                                Images_pass3.Items.Add(imgInfo.PathToGreyImage);
+                                break;
+                            case ImageLocationType.Pass4:
+                                Images_pass4.Items.Add(imgInfo.PathToGreyImage);
+                                break;
+                            case ImageLocationType.Pass5:
+                                Images_pass5.Items.Add(imgInfo.PathToGreyImage);
+                                break;
+                        }
 
+                    }
+                    else
+                    {
+                        Images_extra.Items.Add(imgInfo.PathToSmallImage);
+                    }
                 }
-                else
-                {
-                    Images_extra.Items.Add(imgInfo.PathToSmallImage);
-                }
+                catch { }
             }
             SortPassImagesbyName(Images_pass1);
             SortPassImagesbyName(Images_pass2);
             SortPassImagesbyName(Images_pass3);
             SortPassImagesbyName(Images_pass4);
             SortPassImagesbyName(Images_pass5);
-                   
+               
 
         }
             catch (Exception ER)
             {
                 this.ParentForm.AppendLogTextBox("FAILED to populate images into pass tabs \n***ERROR***\n" + ER.Message);
             }
-            
+            UpdateImageNumber();
         }
 
-        private ImageLocationAndExtraInfo SaveGrayedOutImage(ImageLocationAndExtraInfo imageInfo, int LeftCrop, int RightCrop)
-        {
-            Image<Bgr, Byte> GrayedOutImage = new Image<Bgr, Byte>(imageInfo.PathToSmallImage);
-
-            //transform to HSV
-            Image<Hsv, Byte> HSVCropImage = GrayedOutImage.Convert<Hsv, Byte>();
-
-            // check boundaries
-
-            // for each pixel in the graayed out region set the saturation to 20
-            // divide the value by 3 
-            if ((LeftCrop > 0) && (LeftCrop < RightCrop))
-            {
-                //convert pixel to grayed out pixels
-                for (int i = 0; i < LeftCrop; i++)
-                {
-                    for (int j = 0; j < HSVCropImage.Height; j++)
-                    {
-
-                        HSVCropImage.Data[j, i, 1] = 20;
-
-                        Byte val = HSVCropImage.Data[j, i, 2];
-                        val = (Byte)((int)val / 3);
-                        HSVCropImage.Data[j, i, 2] = val;
-                    }
-                }
-            }
-            if ((RightCrop < GrayedOutImage.Width) && (LeftCrop < RightCrop))
-            {
-                //convert pixel to grayed out pixels
-                for (int i = RightCrop; i < GrayedOutImage.Width; i++)
-                {
-                    for (int j = 0; j < HSVCropImage.Height; j++)
-                    {
-                        GrayedOutImage.Data[j, i, 1] = 20;
-
-                        Byte val = HSVCropImage.Data[j, i, 2];
-                        val = (Byte)((int)val / 3);
-                        HSVCropImage.Data[j, i, 2] = val;
-                    }
-                }
-            }
-
-
-            //transform back to BGR
-            GrayedOutImage = HSVCropImage.Convert<Bgr, Byte>();
-            if (!Directory.Exists(Path.GetDirectoryName(imageInfo.PathToGreyImage)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(imageInfo.PathToGreyImage));
-            }
-
-            CvInvoke.PutText(GrayedOutImage, imageInfo.Altitude.ToString("G4"), new System.Drawing.Point(GrayedOutImage.Width-100, 35), FontFace.HersheyComplex, 1.0, new Bgr(0, 255, 0).MCvScalar);
-            GrayedOutImage.Save(imageInfo.PathToGreyImage);
-            return imageInfo;
-        }
-
-        private void CropImageRight(object sender, EventArgs e)
+        async private void CropImageRight(object sender, EventArgs e)
         {
             try{
             MenuItem MI = (MenuItem)sender;
 
-            ImageListView CurrentView = Images_extra;
+            ImageListView CurrentView = GetCurrentView();
 
-            switch (TAB_CONTROL_TURBINE.SelectedTab.Name) { 
-                case "TAB_PASS_1":
-                    CurrentView = Images_pass1;
-                    break;
-                case "TAB_PASS_2":
-                    CurrentView = Images_pass2;
-                    break;
-                case "TAB_PASS_3":
-                    CurrentView = Images_pass3;
-                    break;
-                case "TAB_PASS_4":
-                    CurrentView = Images_pass4;
-                    break;
-                case "TAB_PASS_5":
-                    CurrentView = Images_pass5;
-                    break;
-                case "TAB_EXTRA":
-                    CurrentView = Images_extra;
-                    break;
-            
-            }
             foreach (ImageListViewItem im in CurrentView.SelectedItems)
             {
                 ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(im.FileName)));
@@ -341,8 +287,8 @@ namespace MissionPlanner
                 {
                     tmpinfo.RightCrop = tmpinfo.LeftCrop;
                 }
-                
-                tmpinfo = SaveGrayedOutImage(tmpinfo,tmpinfo.LeftCrop,tmpinfo.RightCrop);
+
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                 im.Update();
 
             }
@@ -355,36 +301,14 @@ namespace MissionPlanner
 
         }
 
-        private void CropImageLeft(object sender, EventArgs e)
+        async private void CropImageLeft(object sender, EventArgs e)
         {
             try
             {
                 MenuItem MI = (MenuItem)sender;
 
-                ImageListView CurrentView = Images_extra;
+                ImageListView CurrentView = GetCurrentView();
 
-                switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-                {
-
-                    case "TAB_PASS_1":
-                        CurrentView = Images_pass1;
-                        break;
-                    case "TAB_PASS_2":
-                        CurrentView = Images_pass2;
-                        break;
-                    case "TAB_PASS_3":
-                        CurrentView = Images_pass3;
-                        break;
-                    case "TAB_PASS_4":
-                        CurrentView = Images_pass4;
-                        break;
-                    case "TAB_PASS_5":
-                        CurrentView = Images_pass5;
-                        break;
-                    case "TAB_EXTRA":
-                        CurrentView = Images_extra;
-                        break;
-                }
 
                 foreach (ImageListViewItem im in CurrentView.SelectedItems)
                 {
@@ -402,7 +326,7 @@ namespace MissionPlanner
                     }
 
 
-                    tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                    tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                     im.Update();
 
                 }
@@ -419,31 +343,7 @@ namespace MissionPlanner
             {
                 MenuItem MI = (MenuItem)sender;
 
-                ImageListView CurrentView = Images_extra;
-
-                switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-                {
-
-                    case "TAB_PASS_1":
-                        CurrentView = Images_pass1;
-                        break;
-                    case "TAB_PASS_2":
-                        CurrentView = Images_pass2;
-                        break;
-                    case "TAB_PASS_3":
-                        CurrentView = Images_pass3;
-                        break;
-                    case "TAB_PASS_4":
-                        CurrentView = Images_pass4;
-                        break;
-                    case "TAB_PASS_5":
-                        CurrentView = Images_pass5;
-                        break;
-                    case "TAB_EXTRA":
-                        CurrentView = Images_extra;
-                        break;
-
-                }
+                ImageListView CurrentView = GetCurrentView();
 
                 foreach (ImageListViewItem im in CurrentView.SelectedItems)
                 {
@@ -451,7 +351,7 @@ namespace MissionPlanner
 
                     tmpinfo.selected = true;
 
-                    SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                    this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                     switch (MI.Text)
                     {
                         case "1":
@@ -483,6 +383,7 @@ namespace MissionPlanner
                     CurrentView.Items.Remove(im);
                 }
                 SaveProgress();
+                UpdateImageNumber();
             }
             catch (Exception ER) {
                 this.ParentForm.AppendLogTextBox("FAILED while moving images to pass tab " + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + ER.Message);
@@ -495,31 +396,8 @@ namespace MissionPlanner
             {
                 MenuItem MI = (MenuItem)sender;
 
-                ImageListView CurrentView = Images_extra;
+                ImageListView CurrentView = GetCurrentView();
 
-                switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-                {
-
-                    case "TAB_PASS_1":
-                        CurrentView = Images_pass1;
-                        break;
-                    case "TAB_PASS_2":
-                        CurrentView = Images_pass2;
-                        break;
-                    case "TAB_PASS_3":
-                        CurrentView = Images_pass3;
-                        break;
-                    case "TAB_PASS_4":
-                        CurrentView = Images_pass4;
-                        break;
-                    case "TAB_PASS_5":
-                        CurrentView = Images_pass5;
-                        break;
-                    case "TAB_EXTRA":
-                        CurrentView = Images_extra;
-                        break;
-
-                }
 
                 foreach (ImageListViewItem im in CurrentView.SelectedItems)
                 {
@@ -534,6 +412,7 @@ namespace MissionPlanner
                 SaveProgress();
             }
             catch (Exception ER) { this.ParentForm.AppendLogTextBox("FAILED to move images to extra tab" + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + ER.Message); }
+            UpdateImageNumber();
         }
 
         private void tableLayoutPanel3_Paint(object sender, PaintEventArgs e)
@@ -543,74 +422,56 @@ namespace MissionPlanner
 
         private void BUT_RELEASE_Click(object sender, EventArgs e)
         {
-            try
-            {
                 SaveProgress();
+                using (var form = new UploadRelease(this.ParentForm.appSavedData.workOrderNumber, this.ImageGroup.SiteName, this.ImageGroup.AssetName, this.ImageGroup.Blade, this.ParentForm.appSavedData.processorName))
+                {
+                    var result = form.ShowDialog();
+                    if (result == DialogResult.OK)
+                    {
+                        this.ImageGroup.Blade = form.blade;
+                        this.ImageGroup.AssetName = form.assetName;
+                        this.ImageGroup.SiteName = form.site;
+                        this.ParentForm.appSavedData.workOrderNumber = form.workOrderNumber;
+                        this.ParentForm.appSavedData.processorName = form.processor;
+                        this.ParentForm.appSavedData.SaveFile();
 
-                
+                        this.ParentForm.RemoveTabFromMainTabControl(this.ImageGroup.BaseDirectory);
+                        this.ParentForm.EnableDisableButton((Button)this.ParentForm.ATable.Table.GetControlFromPosition(6, row), false, Color.Yellow, "Reviewed");
+                        try
+                        {
+                            this.ParentForm.AppendLogTextBox("\n\nThread to process" + this.ImageGroup.BaseDirectory + " added to que\n");
+                            this.ParentForm.PostThreads.Add(new Thread(() => this.ParentForm.GeotagimagesCropandUpload(ImageGroup, this.PostProccessProgresBar, this.row,form.workOrderNumber,form.processor)));
+                            DisposeSelf();
+
+                        }
+                        catch (Exception er)
+                        {
+                            this.ParentForm.AppendLogTextBox("FAILED while waiting to start post processing thread for " + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + er.Message);
+                        }
+
+
+                    }
+                    else {
+                        return;
+                    }
+                }
                 //ImageReleaseForm ReleaseForm = new ImageReleaseForm(,,)
 
                 //open release form input info
                 //if it returns with and "ok" we can create the upload file
                 //if not cancle
 
-
-                ReleaseThread = new Thread(ReleaseImages);
-                ReleaseThread.Start();
-                //run clean up here
-                this.ParentForm.removeTurbineTabfrom(this.ImageGroup.BaseDirectory);
-                this.ParentForm.EnableDisableButton((Button)this.ParentForm.ATable.Table.GetControlFromPosition(5, row),false,Color.Yellow,"Reviewed");
-
-            }
-            catch(Exception error) {
-                this.ParentForm.AppendLogTextBox("FAILED while starting post processing thread for " + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + error.Message);
-            }
-        }
-        private void ReleaseImages() {
-            try
-            {
+                //write to status button
+                //call a function in ITG to remove itself
                 
-                this.ParentForm.AppendLogTextBox("\n\nThread to process" + this.ImageGroup.BaseDirectory + " added to que\n" );
-                
-
-
-
-                this.ParentForm.PostThreads.Add( new Thread(() => this.ParentForm.GeotagimagesAndCrop(ImageGroup, this.PostProccessProgresBar,this.row)));
-            }
-            catch (Exception e) {
-                this.ParentForm.AppendLogTextBox("FAILED while waiting to start post processing thread for " + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + e.Message );
-            }
-
         }
 
-        private void BUTT_LL_Click(object sender, EventArgs e)
+        async private void BUTT_LL_Click(object sender, EventArgs e)
         {
             try
             {
-                ImageListView CurrentView = Images_extra;
+                ImageListView CurrentView = GetCurrentView();
 
-                switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-                {
-
-                    case "TAB_PASS_1":
-                        CurrentView = Images_pass1;
-                        break;
-                    case "TAB_PASS_2":
-                        CurrentView = Images_pass2;
-                        break;
-                    case "TAB_PASS_3":
-                        CurrentView = Images_pass3;
-                        break;
-                    case "TAB_PASS_4":
-                        CurrentView = Images_pass4;
-                        break;
-                    case "TAB_PASS_5":
-                        CurrentView = Images_pass5;
-                        break;
-                    case "TAB_EXTRA":
-                        CurrentView = Images_extra;
-                        break;
-                }
 
                 foreach (ImageListViewItem im in CurrentView.SelectedItems)
                 {
@@ -628,7 +489,7 @@ namespace MissionPlanner
                     }
 
 
-                    tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                    tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                     im.Update();
 
                 }
@@ -639,34 +500,10 @@ namespace MissionPlanner
             }
         }
 
-        private void BUTT_LR_Click(object sender, EventArgs e)
+        async private void BUTT_LR_Click(object sender, EventArgs e)
         {
             try{
-            ImageListView CurrentView = Images_extra;
-
-            switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-            {
-
-                case "TAB_PASS_1":
-                    CurrentView = Images_pass1;
-                    break;
-                case "TAB_PASS_2":
-                    CurrentView = Images_pass2;
-                    break;
-                case "TAB_PASS_3":
-                    CurrentView = Images_pass3;
-                    break;
-                case "TAB_PASS_4":
-                    CurrentView = Images_pass4;
-                    break;
-                case "TAB_PASS_5":
-                    CurrentView = Images_pass5;
-                    break;
-                case "TAB_EXTRA":
-                    CurrentView = Images_extra;
-                    break;
-            }
-
+                ImageListView CurrentView = GetCurrentView();
             foreach (ImageListViewItem im in CurrentView.SelectedItems)
             {
 
@@ -683,7 +520,7 @@ namespace MissionPlanner
                 }
 
 
-                tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                 im.Update();
 
             }
@@ -694,33 +531,12 @@ namespace MissionPlanner
             }
         }
 
-        private void BUTT_RL_Click(object sender, EventArgs e)
+        async private void BUTT_RL_Click(object sender, EventArgs e)
         {
             try{
-            ImageListView CurrentView = Images_extra;
+            ImageListView CurrentView = GetCurrentView();
 
-            switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-            {
-                case "TAB_PASS_1":
-                    CurrentView = Images_pass1;
-                    break;
-                case "TAB_PASS_2":
-                    CurrentView = Images_pass2;
-                    break;
-                case "TAB_PASS_3":
-                    CurrentView = Images_pass3;
-                    break;
-                case "TAB_PASS_4":
-                    CurrentView = Images_pass4;
-                    break;
-                case "TAB_PASS_5":
-                    CurrentView = Images_pass5;
-                    break;
-                case "TAB_EXTRA":
-                    CurrentView = Images_extra;
-                    break;
-
-            }
+           
             foreach (ImageListViewItem im in CurrentView.SelectedItems)
             {
                 ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(im.FileName)));
@@ -735,7 +551,7 @@ namespace MissionPlanner
                     tmpinfo.RightCrop = tmpinfo.LeftCrop;
                 }
 
-                tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                 im.Update();
 
             }
@@ -746,33 +562,11 @@ namespace MissionPlanner
             }
         }
 
-        private void BUTT_RR_Click(object sender, EventArgs e)
+        async private void BUTT_RR_Click(object sender, EventArgs e)
         {
             try{
-            ImageListView CurrentView = Images_extra;
+            ImageListView CurrentView = GetCurrentView(); 
 
-            switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-            {
-                case "TAB_PASS_1":
-                    CurrentView = Images_pass1;
-                    break;
-                case "TAB_PASS_2":
-                    CurrentView = Images_pass2;
-                    break;
-                case "TAB_PASS_3":
-                    CurrentView = Images_pass3;
-                    break;
-                case "TAB_PASS_4":
-                    CurrentView = Images_pass4;
-                    break;
-                case "TAB_PASS_5":
-                    CurrentView = Images_pass5;
-                    break;
-                case "TAB_EXTRA":
-                    CurrentView = Images_extra;
-                    break;
-
-            }
             foreach (ImageListViewItem im in CurrentView.SelectedItems)
             {
                 ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(im.FileName)));
@@ -787,7 +581,7 @@ namespace MissionPlanner
                     tmpinfo.RightCrop = tmpinfo.LeftCrop;
                 }
 
-                tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
                 im.Update();
 
             }
@@ -860,29 +654,8 @@ namespace MissionPlanner
         private void RemapAltDialog(object sender, EventArgs e)
         {
 
-              ImageListView CurrentView = Images_extra;
+            ImageListView CurrentView = GetCurrentView();
 
-            switch (TAB_CONTROL_TURBINE.SelectedTab.Name) { 
-                case "TAB_PASS_1":
-                    CurrentView = Images_pass1;
-                    break;
-                case "TAB_PASS_2":
-                    CurrentView = Images_pass2;
-                    break;
-                case "TAB_PASS_3":
-                    CurrentView = Images_pass3;
-                    break;
-                case "TAB_PASS_4":
-                    CurrentView = Images_pass4;
-                    break;
-                case "TAB_PASS_5":
-                    CurrentView = Images_pass5;
-                    break;
-                case "TAB_EXTRA":
-                    CurrentView = Images_extra;
-                    break;
-            
-            }
 
             using (var form = new AltRemapDialog())
             {
@@ -901,33 +674,10 @@ namespace MissionPlanner
             SaveProgress();
         }
 
-        private void RemapSingleAltDialog(object sender, EventArgs e)
+        async private void RemapSingleAltDialog(object sender, EventArgs e)
         {
 
-            ImageListView CurrentView = Images_extra;
-
-            switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
-            {
-                case "TAB_PASS_1":
-                    CurrentView = Images_pass1;
-                    break;
-                case "TAB_PASS_2":
-                    CurrentView = Images_pass2;
-                    break;
-                case "TAB_PASS_3":
-                    CurrentView = Images_pass3;
-                    break;
-                case "TAB_PASS_4":
-                    CurrentView = Images_pass4;
-                    break;
-                case "TAB_PASS_5":
-                    CurrentView = Images_pass5;
-                    break;
-                case "TAB_EXTRA":
-                    CurrentView = Images_extra;
-                    break;
-
-            }
+            ImageListView CurrentView = GetCurrentView();
 
             using (var form = new AltRemapSingleDialog())
             {
@@ -941,7 +691,7 @@ namespace MissionPlanner
                     {
                         ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(Item.FileName)));
                         tmpinfo.Altitude = newalt;
-                        tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+                        tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop,tmpinfo.brightnessCorrection);
                         Item.Update();
                     }
                 }
@@ -950,7 +700,7 @@ namespace MissionPlanner
             SaveProgress();
         }
 
-        private void RemapAltsforPass(ImageListView view, float start, float end) { 
+        async private void RemapAltsforPass(ImageListView view, float start, float end) { 
         
         if (!(view.Items.Count>0)){
             return;
@@ -963,27 +713,79 @@ namespace MissionPlanner
             ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(Item.FileName)));
 
             tmpinfo.Altitude = alt;
-            tmpinfo = SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop);
+            tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
             Item.Update();
 
             alt = alt + step;
         }
         
-        
-        
         }
 
         private void LoadProgress()
         {
-            ImageBladeGroup LastSavedData = new ImageBladeGroup();
             System.Xml.Serialization.XmlSerializer reader = new System.Xml.Serialization.XmlSerializer(typeof(ImageBladeGroup));
             System.IO.StreamReader file = new System.IO.StreamReader(PATH_TO_SAVED_PROG_FILE);
             this.ImageGroup = (ImageBladeGroup)reader.Deserialize(file);
+
+            if ((this.ImageGroup.Blade == "") || (this.ImageGroup.AssetName == "") || (this.ImageGroup.SiteName == "") || (this.ImageGroup.Latitude == ""))
+            {
+                Dictionary<string, string> InfoData = new Dictionary<string, string>();
+                string infoFile = Path.Combine(this.ImageGroup.BaseDirectory, "ExtraInfo.txt");
+                if (File.Exists(infoFile))
+                {
+                    string[] lines = System.IO.File.ReadAllLines(infoFile);
+                    foreach (string line in lines)
+                    {
+                        string[] parts = line.Split(':');
+                        if (parts.Length > 1)
+                        {
+                            parts[1] = parts[1].Trim();
+                            parts[0] = parts[0].Trim();
+                            InfoData.Add(parts[0], parts[1]);
+                        }
+
+                    }
+                    this.ImageGroup.AssetName = InfoData["Turbine"];
+                    this.ImageGroup.Blade = InfoData["Blade"];
+                    this.ImageGroup.SiteName = InfoData["Site name"];
+                    this.ImageGroup.Latitude = InfoData["Latitude"];
+                    this.ImageGroup.Longitude = InfoData["Longitude"];
+                }
+            }
+
+
             file.Close();
         }
 
         private void SaveProgress()
         {
+
+            if ((this.ImageGroup.Blade == "") || (this.ImageGroup.AssetName == "") || (this.ImageGroup.SiteName == "") || (this.ImageGroup.Latitude == ""))
+            {
+                Dictionary<string, string> InfoData = new Dictionary<string, string>();
+                string infoFile = Path.Combine(this.ImageGroup.BaseDirectory, "ExtraInfo.txt");
+                if (File.Exists(infoFile))
+                {
+                    string[] lines = System.IO.File.ReadAllLines(infoFile);
+                    foreach (string line in lines)
+                    {
+                        string[] parts = line.Split(':');
+                        if (parts.Length > 1)
+                        {
+                            parts[1] = parts[1].Trim();
+                            parts[0] = parts[0].Trim();
+                            InfoData.Add(parts[0], parts[1]);
+                        }
+
+                    }
+                    this.ImageGroup.AssetName = InfoData["Turbine"];
+                    this.ImageGroup.Blade = InfoData["Blade"];
+                    this.ImageGroup.SiteName = InfoData["Site name"];
+                    this.ImageGroup.Latitude = InfoData["Latitude"];
+                    this.ImageGroup.Longitude = InfoData["Longitude"];
+                }
+            }
+
             System.Xml.Serialization.XmlSerializer CameraWriter = new System.Xml.Serialization.XmlSerializer(typeof(ImageBladeGroup));
             System.IO.FileStream wfile = System.IO.File.Create(PATH_TO_SAVED_PROG_FILE);
             CameraWriter.Serialize(wfile, this.ImageGroup);
@@ -997,6 +799,136 @@ namespace MissionPlanner
         private void pictureBox1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void BUT_CLOSE_Click(object sender, EventArgs e)
+        {
+            this.ParentForm.RemoveTabFromMainTabControl(this.ImageGroup.BaseDirectory);
+            this.ParentForm.EnableDisableButton((Button)this.ParentForm.ATable.Table.GetControlFromPosition(6, row), true, Color.Yellow, "Ready");
+            DisposeSelf();
+        }
+        private void DisposeSelf() {
+
+            this.Images_extra.Dispose();
+            this.Images_pass1.Dispose();
+            this.Images_pass2.Dispose();
+            this.Images_pass3.Dispose();
+            this.Images_pass4.Dispose();
+            this.Images_pass5.Dispose();
+
+            this.Dispose();
+        }
+
+        async private void BUTT_REFRESH_Click(object sender, EventArgs e)
+        {
+            ImageListView CurrentView = GetCurrentView();
+
+            foreach (ImageListViewItem item in CurrentView.Items) {
+                ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(item.FileName)));
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop,tmpinfo.brightnessCorrection);
+                item.Update();
+            }
+        }
+
+        private void ListBoxDoubleClick(object sender, ItemClickEventArgs Args)
+        {
+            ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(Args.Item.FileName)));
+            Process.Start(tmpinfo.PathToOrigionalImage);
+        }
+        private ImageListView GetCurrentView(){
+
+            switch (TAB_CONTROL_TURBINE.SelectedTab.Name)
+            {
+                case "TAB_PASS_1":
+                    return Images_pass1;
+                    break;
+                case "TAB_PASS_2":
+                    return Images_pass2;
+                    break;
+                case "TAB_PASS_3":
+                    return Images_pass3;
+                    break;
+                case "TAB_PASS_4":
+                    return Images_pass4;
+                    break;
+                case "TAB_PASS_5":
+                    return Images_pass5;
+                    break;
+                case "TAB_EXTRA":
+                    return Images_extra;
+                    break;
+                default:
+                    return Images_extra;
+                    break;
+            }
+        
+        
+        }
+
+        private void TAB_PASS_1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        async private void BUTT_BRIGHTNESS_UP_Click(object sender, EventArgs e)
+        {
+            try{
+            ImageListView CurrentView = GetCurrentView();
+            foreach (ImageListViewItem im in CurrentView.SelectedItems)
+            {
+                ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(im.FileName)));
+
+                if (tmpinfo.brightnessCorrection<200) tmpinfo.brightnessCorrection = tmpinfo.brightnessCorrection+5;
+        
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
+                im.Update();
+
+            }
+            SaveProgress();
+            }
+            catch (Exception error) {
+                this.ParentForm.AppendLogTextBox("\n\n****ERROR***\n"+error.Message);
+            }
+        }
+
+        async private void BUTT_BRIGHTNESS_DOWN_Click(object sender, EventArgs e)
+        {
+            try{
+            ImageListView CurrentView = GetCurrentView();
+            foreach (ImageListViewItem im in CurrentView.SelectedItems)
+            {
+                ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(im.FileName)));
+
+                if (tmpinfo.brightnessCorrection > -200) tmpinfo.brightnessCorrection = tmpinfo.brightnessCorrection - 5;
+        
+                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
+                im.Update();
+
+            }
+            SaveProgress();
+            }
+            catch (Exception error) {
+                this.ParentForm.AppendLogTextBox("\n\n****ERROR***\n"+error.Message);
+            }
+        }
+
+        private void TAB_CONTROL_TURBINE_TabIndexChanged(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void tableLayoutPanel8_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void TAB_CONTROL_TURBINE_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateImageNumber();
+        }
+        private void UpdateImageNumber() {
+            ImageListView CurrentView = GetCurrentView();
+            LABEL_IMAGECOUNT.Text = CurrentView.Items.Count.ToString()+" - "+ ImageGroup.FullImageList.Count.ToString();
         }
         
     }

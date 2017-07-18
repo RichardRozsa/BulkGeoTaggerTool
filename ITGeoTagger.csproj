@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ITGeoTagger</RootNamespace>
     <AssemblyName>ITGeoTagger</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\GroundPlanTool\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -39,6 +39,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BSE.Windows.Forms, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\GroundPlanTool\ExtLibs\BSE.Windows.Forms\bin\Release\BSE.Windows.Forms.dll</HintPath>
+    </Reference>
     <Reference Include="Emgu.CV.UI, Version=3.1.0.2282, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
       <HintPath>..\GroundPlanTool\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.UI.dll</HintPath>
       <Private>True</Private>
@@ -51,6 +55,14 @@
       <HintPath>..\GroundPlanTool\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.World.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="GeoUtility, Version=3.1.7.5, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\GroundPlanTool\ExtLibs\GeoUtility\bin\Release\GeoUtility.dll</HintPath>
+    </Reference>
+    <Reference Include="GMap.NET.WindowsForms, Version=1.7.0.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\GroundPlanTool\ExtLibs\GMap.NET.WindowsForms\bin\Release\GMap.NET.WindowsForms.dll</HintPath>
+    </Reference>
     <Reference Include="ImageListView, Version=11.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Downloads\ImageListViewDemo\ImageListView.dll</HintPath>
@@ -58,6 +70,10 @@
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\GroundPlanTool\bin\Debug\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="MissionPlanner.Controls, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\MissionPlanner.Controls.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\GroundPlanTool\packages\OpenTK.1.1.2225.0\lib\net20\OpenTK.dll</HintPath>
@@ -69,6 +85,20 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\GroundPlanTool\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft ASP.NET\ASP.NET MVC 4\Assemblies\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives, Version=4.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\GroundPlanTool\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -102,12 +132,14 @@
     <Compile Include="ImageReleaseForm.Designer.cs">
       <DependentUpon>ImageReleaseForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ITConfigFile.cs" />
     <Compile Include="ITGeotagger.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ITGeotagger.Designer.cs">
       <DependentUpon>ITGeotagger.cs</DependentUpon>
     </Compile>
+    <Compile Include="IT_ImageBoxRenderer.cs" />
     <Compile Include="PictureInformation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -119,7 +151,45 @@
     <Compile Include="TurbineTab.Designer.cs">
       <DependentUpon>TurbineTab.cs</DependentUpon>
     </Compile>
+    <Compile Include="UploadRelease.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UploadRelease.Designer.cs">
+      <DependentUpon>UploadRelease.cs</DependentUpon>
+    </Compile>
     <Compile Include="VehicleLocation.cs" />
+    <Compile Include="WindAMSObjects\Application.cs" />
+    <Compile Include="WindAMSObjects\Asset.cs" />
+    <Compile Include="WindAMSObjects\AssetAdOn.cs" />
+    <Compile Include="WindAMSObjects\AssetAttributeType.cs" />
+    <Compile Include="WindAMSObjects\AssetInspection.cs" />
+    <Compile Include="WindAMSObjects\AssetInspectionAttributeType.cs" />
+    <Compile Include="WindAMSObjects\AssetInspectionSearchBean.cs" />
+    <Compile Include="WindAMSObjects\AssetSearchBean.cs" />
+    <Compile Include="WindAMSObjects\AssetType.cs" />
+    <Compile Include="WindAMSObjects\Component.cs" />
+    <Compile Include="WindAMSObjects\ComponentAttributeType.cs" />
+    <Compile Include="WindAMSObjects\ComponentInspection.cs" />
+    <Compile Include="WindAMSObjects\ComponentInspectionSearchBean.cs" />
+    <Compile Include="WindAMSObjects\ComponentInspectionStatusEvent .cs" />
+    <Compile Include="WindAMSObjects\ComponentSearchBean.cs" />
+    <Compile Include="WindAMSObjects\CrUDResponseBean.cs" />
+    <Compile Include="WindAMSObjects\Dimension.cs" />
+    <Compile Include="WindAMSObjects\GeoPoint.cs" />
+    <Compile Include="WindAMSObjects\Group.cs" />
+    <Compile Include="WindAMSObjects\InspectionEvent.cs" />
+    <Compile Include="WindAMSObjects\InspectionEventPolygon.cs" />
+    <Compile Include="WindAMSObjects\InspectionEventResourse.cs" />
+    <Compile Include="WindAMSObjects\Organization.cs" />
+    <Compile Include="WindAMSObjects\OrganizationAddress.cs" />
+    <Compile Include="WindAMSObjects\ResourseMetaData.cs" />
+    <Compile Include="WindAMSObjects\SensorReading.cs" />
+    <Compile Include="WindAMSObjects\Site.cs" />
+    <Compile Include="WindAMSObjects\User.cs" />
+    <Compile Include="WindAMSObjects\UserAddress.cs" />
+    <Compile Include="WindAMSObjects\WindamsController.cs" />
+    <Compile Include="WindAMSObjects\WorkOrder.cs" />
+    <Compile Include="WindAMSObjects\WorkOrderSearchBean.cs" />
     <EmbeddedResource Include="AltRemapSingleDialog.resx">
       <DependentUpon>AltRemapSingleDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -144,6 +214,9 @@
     </Compile>
     <EmbeddedResource Include="TurbineTab.resx">
       <DependentUpon>TurbineTab.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UploadRelease.resx">
+      <DependentUpon>UploadRelease.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
@@ -194,6 +267,11 @@
     <Error Condition="!Exists('..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets'))" />
   </Target>
   <Import Project="..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets" Condition="Exists('..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" />
+  <Import Project="..\GroundPlanTool\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\GroundPlanTool\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\GroundPlanTool\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\GroundPlanTool\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

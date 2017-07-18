@@ -1,4 +1,4 @@
-﻿namespace MissionPlanner
+﻿namespace ITGeoTagger
 {
     partial class ITGeotagger
     {
@@ -36,7 +36,6 @@
             this.TXT_BROWSE_FOLDER = new System.Windows.Forms.TextBox();
             this.TabOrganize = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
-            this.BUT_GET_TRIG_OFFSETS = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.MAIN_TAB_CONTROL = new System.Windows.Forms.TabControl();
             this.Alltab = new System.Windows.Forms.TabPage();
@@ -144,8 +143,7 @@
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 27.20588F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 365F));
-            this.tableLayoutPanel3.Controls.Add(this.BUT_GET_TRIG_OFFSETS, 0, 0);
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 399F));
             this.tableLayoutPanel3.Controls.Add(this.textBox1, 4, 0);
             this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
@@ -154,27 +152,14 @@
             this.tableLayoutPanel3.Size = new System.Drawing.Size(956, 44);
             this.tableLayoutPanel3.TabIndex = 1;
             // 
-            // BUT_GET_TRIG_OFFSETS
-            // 
-            this.BUT_GET_TRIG_OFFSETS.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.BUT_GET_TRIG_OFFSETS.Location = new System.Drawing.Point(3, 3);
-            this.BUT_GET_TRIG_OFFSETS.Name = "BUT_GET_TRIG_OFFSETS";
-            this.BUT_GET_TRIG_OFFSETS.Size = new System.Drawing.Size(128, 38);
-            this.BUT_GET_TRIG_OFFSETS.TabIndex = 1;
-            this.BUT_GET_TRIG_OFFSETS.Text = "Get Offsets";
-            this.BUT_GET_TRIG_OFFSETS.UseVisualStyleBackColor = true;
-            this.BUT_GET_TRIG_OFFSETS.Click += new System.EventHandler(this.BUT_GET_TRIG_OFFSETS_Click);
-            // 
             // textBox1
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(591, 3);
+            this.textBox1.Location = new System.Drawing.Point(558, 3);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(362, 27);
+            this.textBox1.Size = new System.Drawing.Size(395, 27);
             this.textBox1.TabIndex = 2;
             this.textBox1.Text = "JobNumber";
             this.textBox1.Visible = false;
@@ -240,7 +225,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TableLayoutPanel TabOrganize;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
-        private System.Windows.Forms.Button BUT_GET_TRIG_OFFSETS;
         private System.Windows.Forms.Timer TIMER_THREAD_CHECKER;
         private System.Windows.Forms.TextBox textBox1;
     }

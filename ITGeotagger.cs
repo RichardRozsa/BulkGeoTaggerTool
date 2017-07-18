@@ -20,6 +20,7 @@ using System.Globalization;
 using MissionPlanner.Log;
 using MissionPlanner.Utilities;
 using System.Threading;
+using System.Threading.Tasks;
 using MissionPlanner;
 using ITGeoTagger;
 using Emgu.CV;
@@ -27,9 +28,10 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.Util.TypeEnum;
 using Emgu.CV.Shape;
+using ITGeoTagger.WindAMSObjects;
 
 
-namespace MissionPlanner
+namespace ITGeoTagger
 {
     public partial class ITGeotagger : Form
     {
@@ -39,9 +41,12 @@ namespace MissionPlanner
             CAM_MSG
         }
 
+        public string Myprocessor ="";
+
         public List<Thread> PostThreads = new List<Thread>();
         List<Thread> PreThreads = new List<Thread>();
-
+        int PostThreadReleaseBusyCount = 0;
+        int PostThreadReleaseBusyMAX = 2;
         private const string PHOTO_FILES_FILTER = "*.jpg;*.tif";
         private const int JXL_ID_OFFSET = 10;
 
@@ -68,15 +73,21 @@ namespace MissionPlanner
         public ImageGroupTableInfo ATable;
         private TableLayoutPanel TabOrganizer = new TableLayoutPanel();
 
-        Dictionary<string, TabPage> MainTabs = new Dictionary<string, TabPage>();
+        public Dictionary<string, TabPage> MainTabs = new Dictionary<string, TabPage>();
 
         public Thread PreProcessThread;
         public Thread PostProcessThread;
 
+        private float VerticalImageDistribution = 2;
+        private float cameraShutterLag = (float)1.5;
+
+        public ITConfigFile appSavedData;
+
         public ITGeotagger()
         {
             InitializeComponent();
-
+            appSavedData = new ITConfigFile();
+            appSavedData.LoadFile();
             //CHECK_AMSLAlt_Use.Checked = true;
             //PANEL_TIME_OFFSET.Enabled = false;
 
@@ -95,8 +106,6 @@ namespace MissionPlanner
 
             TabOrganize.Controls.Add(ATable.Table, 0, 1);
 
-            BUT_GET_TRIG_OFFSETS.Enabled = false;
-
             ////test create a new tab
 
             //TabPage TetsPage = new TabPage();
@@ -112,27 +121,70 @@ namespace MissionPlanner
 
         }
 
-        private void BUT_GET_DIR_Click(object sender, EventArgs e)
+        private async void BUT_GET_DIR_Click(object sender, EventArgs e)
         {
             DialogResult result = folderBrowserDialog1.ShowDialog();
 
             if (result == DialogResult.OK)
             {
+                AppendLogTextBox("\nSearching for image sets\n");
                 TXT_BROWSE_FOLDER.Text = folderBrowserDialog1.SelectedPath;
                 List<string> ImageSet = GetAllImageDirs(TXT_BROWSE_FOLDER.Text);
 
                 List<string> TlogImageDirs = Dirsfiltertlog(ImageSet);
+                AppendLogTextBox("\nFound " + TlogImageDirs.Count.ToString() + " image sets\n");
+
+                if (TlogImageDirs.Count > 10) {
+                    AppendLogTextBox("\nThis process should take at most " + (((TlogImageDirs.Count*4)/60)+1).ToString("G2") + " minutes\n");
+                }
+
+                AppendLogTextBox("\nImporting all found image sets\n");
                 foreach (string folder in TlogImageDirs)
                 {
-                    ATable.AddRow(folder, GetTlogInDir(folder), GetImagetoTriggerOffset(folder, GetTlogInDir(folder)).ToString("G4"));
+                    //check if we have a processing file here to import quicker
+                    string progFile = Path.Combine(folder, "Processed.xml");
+                    if (File.Exists(progFile))
+                    {
+                        ImageBladeGroup LastSavedData = new ImageBladeGroup();
+                        System.Xml.Serialization.XmlSerializer reader = new System.Xml.Serialization.XmlSerializer(typeof(ImageBladeGroup));
+                        System.IO.StreamReader file = new System.IO.StreamReader(progFile);
+                        LastSavedData = (ImageBladeGroup)reader.Deserialize(file);
+                        if ((LastSavedData.Blade == "") || (LastSavedData.AssetName == "") || (LastSavedData.SiteName == "") || (LastSavedData.Latitude == ""))
+                        {
+                            Dictionary<string, string> InfoData = new Dictionary<string, string>();
+                            string infoFile = Path.Combine(folder, "ExtraInfo.txt");
+                            if(File.Exists(infoFile)){
+                                string[] lines = System.IO.File.ReadAllLines(infoFile);
+                                foreach (string line in lines)
+                                {
+                                    string[] parts = line.Split(':');
+                                    if (parts.Length > 1)
+                                    {
+                                        parts[1] = parts[1].Trim();
+                                        parts[0] = parts[0].Trim();
+                                        InfoData.Add(parts[0], parts[1]);
+                                    }
+                                }
+                                LastSavedData.AssetName = InfoData["Turbine"];
+                                LastSavedData.Blade = InfoData["Blade"];
+                                LastSavedData.SiteName = InfoData["Site name"];
+                                LastSavedData.Latitude = InfoData["Latitude"];
+                                LastSavedData.Longitude = InfoData["Longitude"];
+                            }
+                        }
+                        file.Close();
+                        ATable.AddRow(folder, GetTlogInDir(folder), LastSavedData.GPStimeOffset.ToString("G4"), LastSavedData.FullImageList.Count);
+                    }
+                    else
+                    {
+                        float tmpTrigTime = await GetImagetoTriggerOffset(folder, GetTlogInDir(folder));
+                        ATable.AddRow(folder, GetTlogInDir(folder), tmpTrigTime.ToString("G4"), Directory.GetFiles(folder,"*.JPG").Length);
+                    }
                 }
-                BUT_GET_TRIG_OFFSETS.Enabled = true;
             }
-
-
         }
 
-        private float GetImagetoTriggerOffset(string dirPictures, string logFile)
+      private async Task<float> GetImagetoTriggerOffset(string dirPictures, string logFile)
         {
             string logFilePath = Path.Combine(dirPictures, logFile);
             if (!File.Exists(logFilePath))
@@ -146,9 +198,9 @@ namespace MissionPlanner
                 return 0;
             }
 
-            DateTime imsettime = GetFirstSustainedImageTime(dirPictures);
-            DateTime tgtime = GetFirstSustainedTriggerTime(logFilePath);
-
+            DateTime imsettime = await GetFirstSustainedImageTime(dirPictures);
+            DateTime tmptgtime = await GetFirstSustainedTriggerTime(logFilePath);
+            DateTime tgtime = tmptgtime.AddSeconds(this.cameraShutterLag);
             AppendLogTextBox("\n\nImage time : " + imsettime.ToString());
             AppendLogTextBox("\nTrigger time : " + tgtime.ToString());
 
@@ -1559,60 +1611,12 @@ namespace MissionPlanner
 
         }
 
-        //    //private void BUT_browsedir_Click(object sender, EventArgs e)
-        //    //{
-        //    //    try
-        //    //    {
-        //    //        folderBrowserDialog1.SelectedPath = Path.GetDirectoryName(TXT_logfile.Text);
-        //    //    }
-        //    //    catch
-        //    //    {
-        //    //    }
-
-        //    //    folderBrowserDialog1.ShowDialog();
-
-        //    //    if (folderBrowserDialog1.SelectedPath != "")
-        //    //    {
-        //    //        TXT_jpgdir.Text = folderBrowserDialog1.SelectedPath;
-
-        //    //        string file = folderBrowserDialog1.SelectedPath + Path.DirectorySeparatorChar + "location.txt";
-
-        //    //        if (File.Exists(file))
-        //    //        {
-        //    //            try
-        //    //            {
-        //    //                using (StreamReader sr = new StreamReader(file))
-        //    //                {
-        //    //                    string cotent = sr.ReadToEnd();
-
-        //    //                    Match match = Regex.Match(cotent, "seconds_offset: ([0-9]+)");
-
-        //    //                    if (match.Success)
-        //    //                    {
-        //    //                        TXT_offsetseconds.Text = match.Groups[1].Value;
-        //    //                    }
-        //    //                }
-        //    //            }
-        //    //            catch
-        //    //            {
-        //    //            }
-        //    //        }
-        //    //    }
-        //    //}
-
-
-        //    private void BUT_estoffset_Click(object sender, EventArgs e)
-        //    {
-        //        //doworkLegacy(TXT_logfile.Text, TXT_jpgdir.Text, 0, true);
-        //        double offset = EstimateOffset(TXT_logfile.Text, TXT_jpgdir.Text);
-
-        //        AppendLogTextBox("\nOffset around :  " + offset.ToString(CultureInfo.InvariantCulture) + "\n\n");
-        //    }
-
-        public ImageBladeGroup GeotagimagesAndCrop(ImageBladeGroup ImageGroup, ProgressBar PBar,int row)
+        public async Task<ImageBladeGroup> GeotagimagesCropandUpload(ImageBladeGroup ImageGroup, ProgressBar PBar,int row,string workOrderNumber,string processedBy)
         {
             try
             {
+                this.PostThreadReleaseBusyCount = this.PostThreadReleaseBusyCount+1;
+
                 // Save file into Geotag folder
                 string rootFolder = ImageGroup.BaseDirectory;
                 string geoTagFolder = rootFolder + Path.DirectorySeparatorChar + "geotagged";
@@ -1644,6 +1648,16 @@ namespace MissionPlanner
                 try
                 {
                     int cnt = 0;
+                    int sequence = 0;
+                    ImageLocationType LastType = ImageLocationType.Pass1; 
+                    WindamsController WC = new WindamsController(appSavedData.upload_URL);
+
+                    bool workOrderExists = await WC.WorkOrderExists(workOrderNumber);
+                    
+                    if (!workOrderExists) {
+                        MessageBox.Show("Work order not found, check the work order number or your internet connection");
+                    }
+
                     foreach (ImageLocationAndExtraInfo ImageLocInfo in ImageGroup.FullImageList)
                     {
                         //check if we are in another tab. if we are pause tempoarily
@@ -1653,7 +1667,9 @@ namespace MissionPlanner
                             GC.WaitForFullGCComplete();
                             Thread.Sleep(1000);
                         }
-
+                        
+                        if (ImageLocInfo.selected)
+                        {
                         try
                         {
                             System.GC.Collect();
@@ -1667,8 +1683,7 @@ namespace MissionPlanner
                             AppendLogTextBox("\nFAILED to Geotag\t" + ImageLocInfo.PathToOrigionalImage);
                             AppendLogTextBox("\n ******ERROR***** \n" + e.ToString());
                         }
-                        if (ImageLocInfo.selected)
-                        {
+
                             //create cropped copy in destination folder
                             switch (ImageLocInfo.Type)
                             {
@@ -1708,8 +1723,47 @@ namespace MissionPlanner
                                 AppendLogTextBox("\nFAILED to Crop\t" + ImageLocInfo.PathToOrigionalImage);
                                 AppendLogTextBox("\n ******ERROR***** \n" + e.ToString());
                             }
+                            try //uncomment to enable upload
+                            {
+                                if (workOrderExists)
+                                {
+                                    if (LastType != ImageLocInfo.Type)
+                                    {
+                                        sequence = 0;
+                                    }
+                                    int pass = 0;
+                                    
+                                    switch (ImageLocInfo.Type)
+                                    {
+                                        case ImageLocationType.Pass1:
+                                            pass = 1;
+                                            break;
+                                        case ImageLocationType.Pass2:
+                                            pass = 2;
+                                            break;
+                                        case ImageLocationType.Pass3:
+                                            pass = 3;
+                                            break;
+                                        case ImageLocationType.Pass4:
+                                            pass = 4;
+                                            break;
+                                        case ImageLocationType.Pass5:
+                                            pass = 5;
+                                            break;
+                                    }
+                                    bool UploadSuccess = await WC.UploadToWindAMS(workOrderNumber, ImageGroup.SiteName, ImageGroup.AssetName, ImageGroup.Blade, processedBy, pass, sequence, ImageLocInfo, ImageGroup);
+                                    if (UploadSuccess) AppendLogTextBox("\nUploaded\t" + ImageLocInfo.PathToOrigionalImage);
+                                    else AppendLogTextBox("\n Image upload failed");
+                                    sequence = sequence + 1;
+                                    LastType = ImageLocInfo.Type;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                AppendLogTextBox("\nFAILED to Upload\t" + ImageLocInfo.PathToOrigionalImage);
+                                AppendLogTextBox("\n ******ERROR***** \n" + e.ToString());
+                            }
                         }
-
 
                         cnt++;
                         setAProgbar(PBar, ImageGroup.FullImageList.Count, cnt);
@@ -1722,14 +1776,16 @@ namespace MissionPlanner
                 }
 
 
-                AppendLogTextBox("\nGeoTagging and cropping thread finished \n");
+                AppendLogTextBox("\nGeoTagging, Cropping and Upload thread finished \n");
 
-                EnableDisableButton((Button)this.ATable.Table.GetControlFromPosition(5, row),false,Color.LimeGreen,"Complete");
-
+                EnableDisableButton((Button)this.ATable.Table.GetControlFromPosition(6, row),false,Color.LimeGreen,"Complete");
+                this.PostThreadReleaseBusyCount = this.PostThreadReleaseBusyCount - 1;
                 return ImageGroup;
+                
             }
             catch (Exception e)
             {
+                this.PostThreadReleaseBusyCount = this.PostThreadReleaseBusyCount - 1;
                 AppendLogTextBox("\n ******ERROR***** \n" + e.Message);
                 return ImageGroup;
             }
@@ -1744,6 +1800,7 @@ namespace MissionPlanner
             int d = (int)coord;
             int m = (int)((coord - d) * 60);
             double s = ((((coord - d) * 60) - m) * 60);
+            
             /*
             21 00 00 00 01 00 00 00--> 33/1
             18 00 00 00 01 00 00 00--> 24/1
@@ -1782,7 +1839,7 @@ namespace MissionPlanner
             using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(imageInfo.PathToOrigionalImage)))
             {
                 AppendLogTextBox("\nGeoTagging \t" + imageInfo.PathToOrigionalImage);
-                Application.DoEvents();
+                System.Windows.Forms.Application.DoEvents();
 
                 using (Image Pic = Image.FromStream(ms))
                 {
@@ -1791,8 +1848,7 @@ namespace MissionPlanner
                     bool NeedsUID = true;
                     foreach (PropertyItem item in pi)
                     {
-
-                        if (item.Type == 0xA420)
+                        if (item.Id == 0xA420)
                         {
                             NeedsUID = false;
                         }
@@ -1802,8 +1858,9 @@ namespace MissionPlanner
                         Guid UID = Guid.NewGuid();
                         pi[0].Id = 0xA420;
                         pi[0].Type = 2;
-                        pi[0].Len = 36;
-                        pi[0].Value = Encoding.ASCII.GetBytes(UID.ToString());
+                        pi[0].Len = 37;
+                        string UIDstring = UID.ToString()+"\0";
+                        pi[0].Value = Encoding.ASCII.GetBytes(UIDstring);
                         Pic.SetPropertyItem(pi[0]);
                     }
 
@@ -1824,8 +1881,6 @@ namespace MissionPlanner
                     pi[0].Len = 8;
                     pi[0].Value = new Rational(imageInfo.Altitude).GetBytes();
                     Pic.SetPropertyItem(pi[0]);
-
-
 
                     pi[0].Id = 1;
                     pi[0].Len = 2;
@@ -1873,67 +1928,10 @@ namespace MissionPlanner
 
         private void Networklinkgeoref()
         {
-            System.Diagnostics.Process.Start(Path.GetDirectoryName(Application.ExecutablePath) +
+            System.Diagnostics.Process.Start(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) +
                                              Path.DirectorySeparatorChar + "m3u" + Path.DirectorySeparatorChar +
                                              "GeoRefnetworklink.kml");
         }
-
-        //    //private void TXT_logfile_TextChanged(object sender, EventArgs e)
-        //    //{
-        //    //    if (vehicleLocations != null)
-        //    //        vehicleLocations.Clear();
-        //    //    if (picturesInfo != null)
-        //    //        picturesInfo.Clear();
-
-        //    //    BUT_Geotagimages.Enabled = false;
-        //    //}
-
-        //    //private void ProcessType_CheckedChanged(object sender, EventArgs e)
-        //    //{
-        //    //    if (RDIO_CAMMsgSynchro.Checked)
-        //    //    {
-        //    //        selectedProcessingMode = PROCESSING_MODE.CAM_MSG;
-        //    //        PANEL_TIME_OFFSET.Enabled = false;
-        //    //        PANEL_SHUTTER_LAG.Enabled = true;
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        selectedProcessingMode = PROCESSING_MODE.TIME_OFFSET;
-        //    //        PANEL_TIME_OFFSET.Enabled = true;
-        //    //        PANEL_SHUTTER_LAG.Enabled = false;
-        //    //    }
-        //    //}
-
-
-        //    //private void TXT_shutterLag_TextChanged(object sender, EventArgs e)
-        //    //{
-        //    //    bool convertedOK = int.TryParse(TXT_shutterLag.Text, NumberStyles.Integer, CultureInfo.InvariantCulture,
-        //    //        out millisShutterLag);
-
-        //    //    if (!convertedOK)
-        //    //        TXT_shutterLag.Text = "0";
-        //    //}
-
-        //    private void CHECK_AMSLAlt_Use_CheckedChanged(object sender, EventArgs e)
-        //    {
-        //        useAMSLAlt = ((CheckBox) sender).Checked;
-
-        //        txt_basealt.Enabled = !useAMSLAlt;
-        //    }
-
-        //    private void chk_cammsg_CheckedChanged(object sender, EventArgs e)
-        //    {
-        //        if (vehicleLocations != null)
-        //            vehicleLocations.Clear();
-        //    }
-
-        //    private void chk_usegps2_CheckedChanged(object sender, EventArgs e)
-        //    {
-        //        if (vehicleLocations != null)
-        //            vehicleLocations.Clear();
-        //    }
-
-
 
         private static Regex r = new Regex(":");
         public static DateTime GetDateTakenFromImage(string path)
@@ -1972,7 +1970,7 @@ namespace MissionPlanner
             return ImageFileList;
         }
 
-        private DateTime GetFirstSustainedImageTime(string ImageDir)
+        async private Task<DateTime> GetFirstSustainedImageTime(string ImageDir)
         {
             DateTime SusImTime = new DateTime();
             List<string> Allimages = GetAllImagesinDirectory(ImageDir);
@@ -2022,7 +2020,7 @@ namespace MissionPlanner
             return SusImTime;
 
         }
-        private DateTime GetFirstSustainedTriggerTime(string fn)
+        async private Task<DateTime> GetFirstSustainedTriggerTime(string fn)
         {
             DateTime SusTrigTime = new DateTime();
 
@@ -2050,7 +2048,6 @@ namespace MissionPlanner
                     VehicleLocation location = new VehicleLocation();
                     location.Time = cs.datetime;
                     bool tmponval = false;
-
 
                     if (((cs.ch7in > 1520) || (cs.ch7in < 1480)) && (cs.ch7in != 0)) //if ch7 val is not default we assume camera is on
                     {
@@ -2134,36 +2131,13 @@ namespace MissionPlanner
             //    return;
 
         }
-        private void TaggingThread()
-        {
-            //AppendLogTextBox("\n\nStarting Process thread");
-            //if (ATable.Table.RowCount == 1)
-            //{
-            //    AppendLogTextBox("\n  WARNING : NO BOXES SELECTED. ");
-            //}
-            //for (int i = 1; i < ATable.Table.RowCount; i++)
-            //{
-            //    try
-            //    {
-            //        CheckBox tmp = (CheckBox)ATable.Table.GetControlFromPosition(3, i);
-            //        if (tmp.Checked) TagARow(i);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        AppendLogTextBox("\n\nFAILED with exemption:\n" + e.ToString());
-            //        return;
-            //    }
 
-            //}
-            //AppendLogTextBox("\n\n Tagging thread complete");
-        }
-
-        private void TagARow(int row)
+        async private void TagARow(int row)
         {
             string dirPictures = ATable.Table.GetControlFromPosition(0, row).Text;
             string logFilePath = Path.Combine(dirPictures, ATable.Table.GetControlFromPosition(1, row).Text);
-            ProgressBar Progbar = (ProgressBar)ATable.Table.GetControlFromPosition(4, row);
-            ProgressBar CroppProgbar = (ProgressBar)ATable.Table.GetControlFromPosition(6, row);
+            ProgressBar Progbar = (ProgressBar)ATable.Table.GetControlFromPosition(5, row);
+            ProgressBar CroppProgbar = (ProgressBar)ATable.Table.GetControlFromPosition(7, row);
 
             ImageBladeGroup RowImagesCollection = new ImageBladeGroup();
 
@@ -2181,12 +2155,75 @@ namespace MissionPlanner
             float secondsOffset = 0;
 
             if (
-                float.TryParse(ATable.Table.GetControlFromPosition(2, row).Text, NumberStyles.Float, CultureInfo.InvariantCulture, out secondsOffset) ==
+                float.TryParse(ATable.Table.GetControlFromPosition(3, row).Text, NumberStyles.Float, CultureInfo.InvariantCulture, out secondsOffset) ==
                 false)
             {
                 AppendLogTextBox("\nOffset number not in correct format. Use . as decimal separator\n");
                 return;
             }
+
+            string ProgFile = Path.Combine(dirPictures, "Processed.xml");
+            if (File.Exists(ProgFile))
+            {
+                try
+                {
+                        ImageBladeGroup LastSavedData = new ImageBladeGroup();
+                        System.Xml.Serialization.XmlSerializer reader = new System.Xml.Serialization.XmlSerializer(typeof(ImageBladeGroup));
+                        System.IO.StreamReader file = new System.IO.StreamReader(ProgFile);
+                        LastSavedData = (ImageBladeGroup)reader.Deserialize(file);
+                        file.Close();
+
+                        //need to add some checks here to make sure that the file 
+
+                        if (LastSavedData.GPStimeOffset.ToString("G4") == secondsOffset.ToString("G4"))
+                        { //shortcut if we already have all the needed data
+                            if (LastSavedData.BaseDirectory == dirPictures)
+                            {
+
+
+                            }
+                            else {
+
+                                ImageBladeGroup NewSavedData = new ImageBladeGroup();
+                                NewSavedData.GPStimeOffset = LastSavedData.GPStimeOffset;
+                                NewSavedData.BaseDirectory = dirPictures;
+                                NewSavedData.FullImageList = LastSavedData.FullImageList;
+                                NewSavedData.tlogFileName = logFilePath;
+
+
+                                foreach (ImageLocationAndExtraInfo imginfo in NewSavedData.FullImageList)
+                                {
+                                    imginfo.PathToOrigionalImage = imginfo.PathToOrigionalImage.Replace(LastSavedData.BaseDirectory, NewSavedData.BaseDirectory);
+                                    imginfo.PathToSmallImage = imginfo.PathToSmallImage.Replace(LastSavedData.BaseDirectory, NewSavedData.BaseDirectory);
+                                    imginfo.PathToGreyImage = imginfo.PathToGreyImage.Replace(LastSavedData.BaseDirectory, NewSavedData.BaseDirectory);
+                                    imginfo.PathToGeoTaggedImage = imginfo.PathToGeoTaggedImage.Replace(LastSavedData.BaseDirectory, NewSavedData.BaseDirectory);
+                                    imginfo.PathToDestination = imginfo.PathToDestination.Replace(LastSavedData.BaseDirectory, NewSavedData.BaseDirectory);
+                                }
+                                System.Xml.Serialization.XmlSerializer Progsavewriter = new System.Xml.Serialization.XmlSerializer(typeof(ImageBladeGroup));
+                                System.IO.FileStream wfile = System.IO.File.Create(ProgFile);
+                                Progsavewriter.Serialize(wfile, NewSavedData);
+                                wfile.Close();
+                            
+                            }
+                            //note to processor
+                            AppendLogTextBox("\n\nUsing last saved processing data for " + LastSavedData.BaseDirectory);
+
+                            //fill the progress bar
+                            setAProgbar(Progbar, LastSavedData.FullImageList.Count, LastSavedData.FullImageList.Count);
+                            //enable post processing button
+                            EnableDisableButton((Button)ATable.Table.GetControlFromPosition(6, row), true, Color.Yellow, "Ready");
+                            EnableDisableButton((Button)ATable.Table.GetControlFromPosition(4, row), true, Color.LimeGreen, "Complete");
+                            return;
+                        }
+                    }
+                    catch(Exception e){
+
+                        AppendLogTextBox("\n\nFailed to load last saved data");
+
+                    }
+            }
+
+
 
             try
             {
@@ -2211,7 +2248,6 @@ namespace MissionPlanner
                 int progCounter = 0;
                 foreach (ImageLocationAndExtraInfo IM_LOC in RowImagesCollection.FullImageList)
                 {
-
 
                     //check if we are in another tab. if we are pause tempoarily
                     while (GetMainTabIndex()!= 0)
@@ -2249,6 +2285,11 @@ namespace MissionPlanner
                         }
                         Thread.Sleep(100); // Slows down thead to avoid crashing if another process is running. Requires better fix
                     }
+                    if (!File.Exists(IM_LOC.PathToGreyImage))
+                    {
+                        ImageLocationAndExtraInfo tmpInfo = await SaveGrayedOutImage(IM_LOC, IM_LOC.LeftCrop, IM_LOC.RightCrop,IM_LOC.brightnessCorrection);
+                        IM_LOC.PathToGreyImage = tmpInfo.PathToGreyImage;
+                    }
                     progCounter++;
                     setAProgbar(Progbar, RowImagesCollection.FullImageList.Count, progCounter);
                 }
@@ -2264,7 +2305,7 @@ namespace MissionPlanner
                 try
                 {
 
-                    string ProgFile = Path.Combine(RowImagesCollection.BaseDirectory, "Processed.xml");
+                    ProgFile = Path.Combine(RowImagesCollection.BaseDirectory, "Processed.xml");
                     if (File.Exists(ProgFile))
                     {
                         ImageBladeGroup LastSavedData = new ImageBladeGroup();
@@ -2315,8 +2356,8 @@ namespace MissionPlanner
 
                 
                 //enable post processing button
-                EnableDisableButton((Button)ATable.Table.GetControlFromPosition(5, row),true,Color.Yellow,"Ready");
-                EnableDisableButton((Button)ATable.Table.GetControlFromPosition(3, row), true,Color.LimeGreen,"Complete");
+                EnableDisableButton((Button)ATable.Table.GetControlFromPosition(6, row),true,Color.Yellow,"Ready");
+                EnableDisableButton((Button)ATable.Table.GetControlFromPosition(4, row), true,Color.LimeGreen,"Complete");
             }
             catch (Exception e)
             {
@@ -2341,16 +2382,20 @@ namespace MissionPlanner
                 return;
             }
 
-            MAIN_TAB_CONTROL.TabPages.Add(MainTabs[BaseDir]);
+            if (!MAIN_TAB_CONTROL.TabPages.Contains(MainTabs[BaseDir]))
+            {
+                MAIN_TAB_CONTROL.TabPages.Add(MainTabs[BaseDir]);
 
-            TurbineTab TurbTab = new TurbineTab(BaseDir, PB, this,row);
+                TurbineTab TurbTab = new TurbineTab(BaseDir, PB, this, row);
 
-            TurbTab.populatePassImages();
+                TurbTab.populatePassImages();
 
-            TurbTab.Parent = MainTabs[BaseDir];
-            TurbTab.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
-            TurbTab.Dock = DockStyle.Fill;
+                MainTabs[BaseDir].Text = TurbTab.ImageGroup.AssetName + " " + TurbTab.ImageGroup.Blade;
 
+                TurbTab.Parent = MainTabs[BaseDir];
+                TurbTab.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
+                TurbTab.Dock = DockStyle.Fill;
+            }
 
         }
 
@@ -2394,15 +2439,121 @@ namespace MissionPlanner
             return ImageLocationList;
 
         }
+        private List<ImageLocationAndExtraInfo> GetListOfPass(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort) {
+            List<ImageLocationAndExtraInfo> FilteredList = new List<ImageLocationAndExtraInfo>();
+            foreach (ImageLocationAndExtraInfo image in ImageList)
+            {
+                if (image.Type == passToSort)
+                {
+                    FilteredList.Add(image);
+                }
+            }
+            return FilteredList;
+        }
+
+        private List<ImageLocationAndExtraInfo> MiddleOutSelect(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort)
+        {
+            List<ImageLocationAndExtraInfo> FilteredList = GetListOfPass(ImageList, passToSort);
+
+            //split list in middle
+            List<ImageLocationAndExtraInfo> FilteredListFirstHalf = FilteredList.GetRange(0, FilteredList.Count / 2);
+            FilteredListFirstHalf.Reverse();
+            List<ImageLocationAndExtraInfo> FilteredListSecondHalf = FilteredList.GetRange((FilteredList.Count / 2) - 1, FilteredList.Count / 2); ;
+
+
+            if ((passToSort == ImageLocationType.Pass1) || (passToSort == ImageLocationType.Pass3))
+            {
+                //Filter first half in reverse down
+                double LastVal = 99999999;
+                ImageLocationAndExtraInfo LastSelected = FilteredListFirstHalf.First();
+                ImageLocationAndExtraInfo tmpLastValue = FilteredListFirstHalf.First();
+                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListFirstHalf)
+                {
+                    // select last hub shot
+                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude <= LastVal - this.VerticalImageDistribution))
+                    {
+                        LastSelected = ImageLoc;
+                        LastVal = tmpLastValue.Altitude;
+                        tmpLastValue.selected = true;
+                    }
+                    tmpLastValue = ImageLoc;
+                }
+                FilteredListFirstHalf.Last().selected = true;
+                //filter second half forward up
+                LastVal = 0;
+                tmpLastValue = FilteredListSecondHalf.First();
+                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListSecondHalf)
+                {
+                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
+                    {
+                        LastSelected = ImageLoc;
+                        LastVal = tmpLastValue.Altitude;
+
+                        tmpLastValue.selected = true;
+                    }
+                    tmpLastValue = ImageLoc;
+                }
+                LastSelected.selected = true;
+            }
+            else if ((passToSort == ImageLocationType.Pass2) || (passToSort == ImageLocationType.Pass4))
+            {
+                //Filter first half in reverse up
+                double LastVal = 0;
+                ImageLocationAndExtraInfo LastSelected = FilteredListFirstHalf.First();
+                ImageLocationAndExtraInfo tmpLastValue = FilteredListFirstHalf.First();
+                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListFirstHalf)
+                {
+                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
+                    {
+                        LastSelected = ImageLoc;
+                        LastVal = tmpLastValue.Altitude;
+                        tmpLastValue.selected = true;
+                    }
+                    tmpLastValue = ImageLoc;
+                }
+                LastSelected.selected = true;
+                //filter second half forward down
+                LastVal = 99999999;
+                tmpLastValue = FilteredListSecondHalf.First();
+                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListSecondHalf)
+                {
+                    // select last hub shot
+                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude <= LastVal - this.VerticalImageDistribution))
+                    {
+                        LastSelected = ImageLoc;
+                        LastVal = tmpLastValue.Altitude;
+                        tmpLastValue.selected = true;
+                    }
+                    tmpLastValue = ImageLoc;
+                }
+                LastSelected.selected = true;
+            }
+
+            //for each element in the two half lists update the main list
+            foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListFirstHalf)
+            {
+                if (ImageLoc.selected) ImageList.Find(x => x.PathToOrigionalImage == ImageLoc.PathToOrigionalImage).selected = true;
+            }
+            foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListSecondHalf)
+            {
+                if (ImageLoc.selected) ImageList.Find(x => x.PathToOrigionalImage == ImageLoc.PathToOrigionalImage).selected = true;
+            }
+
+
+            return ImageList;
+
+        }
+
         private ImageBladeGroup SortImagesByPasses(ImageBladeGroup ImageGroup)
         {
 
             ImageGroup.FullImageList = SortImagesByType(ImageGroup.FullImageList);
 
-            ImageGroup.FullImageList = FilterPassGoingUP(ImageGroup.FullImageList, ImageLocationType.Pass1);
-            ImageGroup.FullImageList = FilterPassGoingDOWN(ImageGroup.FullImageList, ImageLocationType.Pass2);
-            ImageGroup.FullImageList = FilterPassGoingUP(ImageGroup.FullImageList, ImageLocationType.Pass3);
-            ImageGroup.FullImageList = FilterPassGoingDOWN(ImageGroup.FullImageList, ImageLocationType.Pass4);
+            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass1);
+            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass2);
+            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass3);
+            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass4);
+            ImageGroup.FullImageList = GetTipImages(ImageGroup.FullImageList);
 
             return ImageGroup;
         }
@@ -2415,10 +2566,10 @@ namespace MissionPlanner
 
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
-
-                if (ImageLoc.Altitude > hubHeight - 8) { ImageLoc.Type = ImageLocationType.High; }
+                if ((ImageLoc.Altitude < 10)) { ImageLoc.Type = ImageLocationType.Ground; }
+                else if (ImageLoc.Altitude > hubHeight - 8) { ImageLoc.Type = ImageLocationType.High; }
                 else if ((ImageLoc.Altitude > 10) && (ImageLoc.Altitude < tipHeight + 8)) { ImageLoc.Type = ImageLocationType.Low; }
-                else if ((ImageLoc.Altitude < 10)) { ImageLoc.Type = ImageLocationType.Ground; }
+                
             }
             int hubCNT = 0;
             int tipCNT = 0;
@@ -2454,8 +2605,16 @@ namespace MissionPlanner
                 {
                     tempType = ImageLocationType.Pass4;
                 }
-                ImageLoc.Type = tempType;
+                if (ImageLoc.Type != ImageLocationType.Ground)
+                {
+                    ImageLoc.Type = tempType;
+                }
             }
+
+            return ImageLocationList;
+        }
+
+        private List<ImageLocationAndExtraInfo> GetTipImages(List<ImageLocationAndExtraInfo> ImageLocationList) {
 
             double TipShotHeight = 100000;
             //find tip canidates
@@ -2484,48 +2643,110 @@ namespace MissionPlanner
                 }
             }
             //pull tip photos from pass 2&3
+
+            List<ImageLocationAndExtraInfo> tmpTipPhotos = new List<ImageLocationAndExtraInfo>();
+
             double T_Height = sum / CNT;
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
-                if ((ImageLoc.Type == ImageLocationType.Pass2) || (ImageLoc.Type == ImageLocationType.Pass3))
+                if (((ImageLoc.Type == ImageLocationType.Pass2) || (ImageLoc.Type == ImageLocationType.Pass3)) && (ImageLoc.selected==false))
                 {
                     if (ImageLoc.Altitude < T_Height + .3)
                     {
                         ImageLoc.Type = ImageLocationType.Pass5;
-                        ImageLoc.selected = true;
+                        tmpTipPhotos.Add(ImageLoc);
                     }
                 }
             }
+            int totalTipCount = tmpTipPhotos.Count;
+            
+            //select best guess 5
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[2].PathToOrigionalImage).selected = true;
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[totalTipCount / 4].PathToOrigionalImage).selected = true;
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[totalTipCount/2].PathToOrigionalImage).selected = true;
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[(3*totalTipCount)/4].PathToOrigionalImage).selected = true;
+            if (totalTipCount > 5)
+            {
+                ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[totalTipCount-2].PathToOrigionalImage).selected = true;
+            }
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.First().PathToOrigionalImage).selected = true;
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.First().PathToOrigionalImage).Type = ImageLocationType.Pass2;
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.Last().PathToOrigionalImage).selected = true;
+            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.Last().PathToOrigionalImage).Type = ImageLocationType.Pass3;
 
             return ImageLocationList;
         }
+
+
         private List<ImageLocationAndExtraInfo> FilterPassGoingUP(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
         {
+           
+            //select items at a set vertical interval min
 
-            //select items at a 1m interval min
             double LastVal = 0;
             List<ImageLocationAndExtraInfo> tmpList = new List<ImageLocationAndExtraInfo>();
+            ImageLocationAndExtraInfo tmpLastValue = ImageLocationList.First();
+            bool firstTipSelected = false;
+            bool LastTipSelected = false;
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
-                if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude >= LastVal + 1))
+                // select last hub shot
+                if ((ImageLoc.Type == PassNum) && (!firstTipSelected))
                 {
-                    LastVal = ImageLoc.Altitude;
-                    ImageLoc.selected = true;
+                    firstTipSelected = true;
+                    LastVal = tmpLastValue.Altitude;
                 }
+                else if ((ImageLoc.Type == PassNum) && (firstTipSelected) && (!LastTipSelected))
+                {
+                    if (tmpLastValue.Altitude < LastVal) LastVal = tmpLastValue.Altitude;
+                    if (ImageLoc.Altitude > LastVal + .4)
+                    {
+
+                        tmpLastValue.selected = true;
+                        LastVal = tmpLastValue.Altitude;
+                        LastTipSelected = true;
+                    }
+                }
+                else if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
+                {
+                    LastVal = tmpLastValue.Altitude;
+                    tmpLastValue.selected = true;
+                }
+
+                tmpLastValue = ImageLoc;
             }
             return ImageLocationList;
         }
         private List<ImageLocationAndExtraInfo> FilterPassGoingDOWN(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
         {
-            //select items at a 1m interval min
+            //select items at a set interval min
             double LastVal = 9999999;
+            ImageLocationAndExtraInfo tmpLastValue = ImageLocationList.First();
+            bool firstHubSelected = false;
+            bool LastHubSelected = false;
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
-                if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude <= LastVal - 1))
-                {
-                    LastVal = ImageLoc.Altitude;
-                    ImageLoc.selected = true;
+                // select last hub shot
+                if((ImageLoc.Type == PassNum)&&(!firstHubSelected)){
+                    firstHubSelected = true;
+                    LastVal = tmpLastValue.Altitude;
                 }
+                else if ((ImageLoc.Type == PassNum) && (firstHubSelected) && (!LastHubSelected)) {
+                    if (tmpLastValue.Altitude > LastVal) LastVal = tmpLastValue.Altitude;
+                    if (ImageLoc.Altitude < LastVal -.3) {
+
+                        tmpLastValue.selected = true;
+
+                        LastVal = tmpLastValue.Altitude;
+                        LastHubSelected = true; 
+                    }
+                }
+                else if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude <= LastVal - this.VerticalImageDistribution))
+                {
+                    LastVal = tmpLastValue.Altitude;
+                    tmpLastValue.selected = true;
+                }
+                tmpLastValue = ImageLoc;
             }
             return ImageLocationList;
         }
@@ -2543,7 +2764,6 @@ namespace MissionPlanner
             int cnt = 0;
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
-
                 if (ImageLoc.Altitude > MaxHubHeight - 2)
                 {
                     HubHeight = HubHeight + ImageLoc.Altitude;
@@ -2565,13 +2785,13 @@ namespace MissionPlanner
 
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
-                if ((ImageLoc.Altitude < MinTipHeight) && (ImageLoc.Altitude > lowestTip) && (ImageLoc.VertVelocity > -.1) && (ImageLoc.VertVelocity < .1)) { MinTipHeight = ImageLoc.Altitude; }
+                if ((ImageLoc.Altitude < MinTipHeight) && (ImageLoc.Altitude > lowestTip) && (ImageLoc.VertVelocity > -.3) && (ImageLoc.VertVelocity < .3)) { MinTipHeight = ImageLoc.Altitude; }
             }
             int cnt = 0;
             foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
             {
 
-                if (ImageLoc.Altitude < MinTipHeight + 2)
+                if ((ImageLoc.Altitude < MinTipHeight + 2) && (ImageLoc.Altitude > lowestTip))
                 {
                     TipHeight = TipHeight + ImageLoc.Altitude;
                     cnt++;
@@ -2618,46 +2838,7 @@ namespace MissionPlanner
             }
 
         }
-        private void BUT_GET_TRIG_OFFSETS_Click(object sender, EventArgs e)
-        {
-            for (int i = 1; i < ATable.Table.RowCount; i++)
-            {
-                string dirPictures = ATable.Table.GetControlFromPosition(0, i).Text;
-                string logFilePath = Path.Combine(dirPictures, ATable.Table.GetControlFromPosition(1, i).Text);
-
-
-                if (!File.Exists(logFilePath))
-                {
-                    MessageBox.Show("tlog file " + logFilePath + " does not exist ");
-                    return;
-                }
-                if (!Directory.Exists(dirPictures))
-                {
-                    MessageBox.Show("Image directory " + dirPictures + " does not exist ");
-                    return;
-                }
-                AppendLogTextBox("\n\nRow " + i.ToString());
-
-                DateTime imsettime = GetFirstSustainedImageTime(dirPictures);
-                DateTime tgtime = GetFirstSustainedTriggerTime(logFilePath);
-
-                AppendLogTextBox("\nImage time : " + imsettime.ToString());
-                AppendLogTextBox("\nTrigger time : " + tgtime.ToString());
-
-                float trig2im = (float)(imsettime - tgtime).TotalSeconds;
-                try
-                {
-                    ATable.Table.GetControlFromPosition(2, i).Text = trig2im.ToString();
-                }
-                catch
-                {
-
-
-                }
-
-            }
-
-        }
+        
         public void setAProgbar(ProgressBar PB, int max, int val, int timeout = 0)
         {
             timeout++;
@@ -2739,17 +2920,14 @@ namespace MissionPlanner
 
         public void removeTurbineTabfrom(String ImageFolder)
         {
-
             TabPage tmpTabPage = MainTabs[ImageFolder];
             MAIN_TAB_CONTROL.TabPages.Remove(tmpTabPage);
-
-
         }
 
         private void TIMER_THREAD_CHECKER_Tick(object sender, EventArgs e)
         {
             TIMER_THREAD_CHECKER.Enabled = false;
-            TIMER_THREAD_CHECKER.Interval = 2000;
+            TIMER_THREAD_CHECKER.Interval = 1000;
             if (PreProcessThread == null)
             {
                 PreProcessThread = new Thread(DefaultFunction);
@@ -2774,13 +2952,12 @@ namespace MissionPlanner
             else if (PostThreads.Count > 0)
             {
 
-                if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive)) //check if thread is alive
+                if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive)&&(this.PostThreadReleaseBusyCount < this.PostThreadReleaseBusyMAX)) //check if thread is alive
                 {
                     PostProcessThread = PostThreads[0]; //set thread to new thread
                     GC.Collect(); //garbage collection
                     PostProcessThread.Start(); //start new background thread
                     PostThreads.RemoveAt(0);
-
                 }
 
             }
@@ -2802,18 +2979,21 @@ namespace MissionPlanner
             TableLayoutPanelCellPosition cellpos = this.ATable.Table.GetCellPosition((Control)sender);
             string dirPictures = ATable.Table.GetControlFromPosition(0, cellpos.Row).Text;
             string logFilePath = Path.Combine(dirPictures, ATable.Table.GetControlFromPosition(1, cellpos.Row).Text);
-            ProgressBar CroppProgbar = (ProgressBar)ATable.Table.GetControlFromPosition(6, cellpos.Row);
+            ProgressBar CroppProgbar = (ProgressBar)ATable.Table.GetControlFromPosition(7, cellpos.Row);
+            
+            EnableDisableButton((Button)sender, false , Color.Yellow, "Opened");
+            Thread AddTabThread = new Thread(() => ShowRowTurbineTabThread((Button)sender,cellpos.Row,CroppProgbar,dirPictures));
+            AddTabThread.Start();
+            
+        }
+        public void ShowRowTurbineTabThread(Button sender, int row, ProgressBar CroppProgbar, string dirPictures)
+        {
 
-
-            if (!MainTabs.ContainsKey(((Label)ATable.Table.GetControlFromPosition(0, cellpos.Row)).Text))
+            if (!MainTabs.ContainsKey(((Label)ATable.Table.GetControlFromPosition(0, row)).Text))
             {
-                MainTabs.Add(((Label)ATable.Table.GetControlFromPosition(0, cellpos.Row)).Text, new TabPage("+"));
+                MainTabs.Add(dirPictures, new TabPage("+"));
             }
-
-            CreateNewBladeTab(dirPictures, CroppProgbar, cellpos.Row);
-
-            EnableDisableButton((Button)sender,false,Color.Yellow,"Opened");
-
+            CreateNewBladeTab(dirPictures, CroppProgbar, row);
         }
 
          public void DefaultFunction(){}
@@ -2823,78 +3003,147 @@ namespace MissionPlanner
             //not used
              
          }
+         public void RemoveTabFromMainTabControl(string baseDirectory) {
 
+             TabPage tmpTabPage = MainTabs[baseDirectory];
+             MAIN_TAB_CONTROL.TabPages.Remove(tmpTabPage);
+             MainTabs.Remove(baseDirectory);
+
+         }
          private void textBox1_TextChanged(object sender, EventArgs e)
          {
 
          }
-           
-            //private void BUT_CROP_Click(object sender, EventArgs e)
-            //{
-            //    Thread thread = new Thread(CroppingThread);
-            //    thread.Start();
+         async public Task<ImageLocationAndExtraInfo> SaveGrayedOutImage(ImageLocationAndExtraInfo imageInfo, int LeftCrop, int RightCrop,int brightnessCorrection)
+         {
+             Image<Bgr, Byte> GrayedOutImage = new Image<Bgr, Byte>(imageInfo.PathToSmallImage);
 
-            //    return;
-            //}
+             //transform to HSV
+             Image<Hsv, Byte> HSVCropImage = GrayedOutImage.Convert<Hsv, Byte>();
 
-            //private void CroppingThread()
-            //{
-            //    AppendLogTextBox("\n\nStarting cropping thread");
-            //    if (ATable.Table.RowCount == 1)
-            //    {
-            //        AppendLogTextBox("\n  WARNING : NO BOXES SELECTED. ");
-            //    }
-            //    for (int i = 1; i < ATable.Table.RowCount; i++)
-            //    {
-            //        try
-            //        {
-            //            CheckBox tmp = (CheckBox)ATable.Table.GetControlFromPosition(5, i);
-            //            if (tmp.Checked) CropARow(i);
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            AppendLogTextBox("\n\nFAILED with exemption:\n" + e.ToString());
-            //            return;
-            //        }
+             // check boundaries
+             // for each pixel in the graayed out region set the saturation to 20
+             // divide the value by 3 
+                 //convert pixel to grayed out pixels
+             if (brightnessCorrection != 0)
+             {
+                 for (int i = 0; i < GrayedOutImage.Width; i++)
+                 {
+                     for (int j = 0; j < HSVCropImage.Height; j++)
+                     {
+                         Byte val = HSVCropImage.Data[j, i, 2];
+                         if ((int)val + brightnessCorrection<=0)
+                         {
+                            HSVCropImage.Data[j, i, 2] = 0;
+                         }
+                         else if ((int)val+brightnessCorrection>=255) {
+                             HSVCropImage.Data[j, i, 2] = 255;
+                         }
 
-            //    }
-            //    AppendLogTextBox("\n\n cropping thread complete");
-            //}
+                         else
+                         {
+                             val = (Byte)((int)val + brightnessCorrection);
+                             HSVCropImage.Data[j, i, 2] = val;
+                         }
+                     }
+                 }
+             }
 
-            //private void CropARow(int row)
-            //{
+             if ((LeftCrop > 0) && (LeftCrop < RightCrop))
+             {
+                 //convert pixel to grayed out pixels
+                 for (int i = 0; i < LeftCrop; i++)
+                 {
+                     for (int j = 0; j < HSVCropImage.Height; j++)
+                     {
 
-            //    string dirPicturesselected = ATable.Table.GetControlFromPosition(0, row).Text+"\\geotagged\\selected";
-            //    string logFilePath = Path.Combine(dirPicturesselected, ATable.Table.GetControlFromPosition(1, row).Text);
-            //    ProgressBar CroppProgbar = (ProgressBar)ATable.Table.GetControlFromPosition(6, row);
+                         HSVCropImage.Data[j, i, 1] = 20;
 
-            //    if (!Directory.Exists(dirPicturesselected))
-            //    {
-            //        MessageBox.Show("Image directory " + dirPicturesselected + " does not exist ");
-            //        return;
-            //    }
+                         Byte val = HSVCropImage.Data[j, i, 2];
+                         val = (Byte)((int)val / 3);
+                         HSVCropImage.Data[j, i, 2] = val;
+                     }
+                 }
+             }
+             if ((RightCrop < GrayedOutImage.Width) && (LeftCrop < RightCrop))
+             {
+                 //convert pixel to grayed out pixels
+                 for (int i = RightCrop; i < GrayedOutImage.Width; i++)
+                 {
+                     for (int j = 0; j < HSVCropImage.Height; j++)
+                     {
+                         GrayedOutImage.Data[j, i, 1] = 20;
 
-            //    CropImages(dirPicturesselected, CroppProgbar);
+                         Byte val = HSVCropImage.Data[j, i, 2];
+                         val = (Byte)((int)val / 3);
+                         HSVCropImage.Data[j, i, 2] = val;
+                     }
+                 }
+             }
 
-            //}
-        }
 
-        public enum ImageLocationType { Pass1, Pass2, Pass3, Pass4, Pass5, Tip, Hub, Ground, Other, High, Low, Default }
+             //transform back to BGR
+             GrayedOutImage = HSVCropImage.Convert<Bgr, Byte>();
+             if (!Directory.Exists(Path.GetDirectoryName(imageInfo.PathToGreyImage)))
+             {
+                 Directory.CreateDirectory(Path.GetDirectoryName(imageInfo.PathToGreyImage));
+             }
+
+             CvInvoke.PutText(GrayedOutImage, imageInfo.Altitude.ToString("G4"), new System.Drawing.Point(GrayedOutImage.Width - 100, 35), FontFace.HersheyComplex, 1.0, new Bgr(0, 255, 0).MCvScalar);
+             GrayedOutImage.Save(imageInfo.PathToGreyImage);
+             GrayedOutImage.Dispose();
+             return imageInfo;
+         }
+
+         private void button1_Click(object sender, EventArgs e) // exists to check functions
+         {
+             DateTime now = DateTime.Now;
+             WindamsController WC = new WindamsController("http://testing.inspectools.net/webservices/");
+
+             string baseDirectory = @"E:\ImageDataBase\Erieau\140\A\6-19-2017\Flight 1";
+             string Filepath = Path.Combine(baseDirectory, "ExtraInfo.txt");
+             string[] lines = System.IO.File.ReadAllLines(Filepath);
+
+             Dictionary<string, string> InfoData = new Dictionary<string, string>();
+             string formattedTime = WC.DateTimeToWindamsDateTimeString(now);
+             foreach (string line in lines)
+             {
+                 string[] parts = line.Split(':');
+                 if (parts.Length > 1) {
+                     parts[1] = parts[1].Trim();
+                     parts[0] = parts[0].Trim();
+                     InfoData.Add(parts[0], parts[1]);
+                 }
+
+             }
+             MessageBox.Show(formattedTime);
+             MessageBox.Show("Key{Turbine}Value{" + InfoData["Turbine"] + "}");
+             MessageBox.Show("Key{Blade}Value{" + InfoData["Blade"] + "}");
+             MessageBox.Show("Key{Site name}Value{" + InfoData["Site name"] + "}");
+
+          }
+     }
+     public enum ImageLocationType { Pass1, Pass2, Pass3, Pass4, Pass5, Tip, Hub, Ground, Other, High, Low, Default }
 
 
-        public class ImageBladeGroup
+     public class ImageBladeGroup
         {
             public List<ImageLocationAndExtraInfo> FullImageList;
             public double GPStimeOffset = 0;
             public string BaseDirectory = "";
             public string tlogFileName = "";
+            public string Blade = "";
+            public string AssetName = "";
+            public string SiteName = "";
+            public string Latitude = "";
+            public string Longitude = "";
 
             public ImageBladeGroup()
             {
             }
 
         }
-        public class ImageLocationAndExtraInfo
+    public class ImageLocationAndExtraInfo
         {
             public string PathToOrigionalImage = "";
             public string PathToSmallImage = "";
@@ -2910,23 +3159,26 @@ namespace MissionPlanner
             public bool selected = false;
             public int LeftCrop = 0;
             public int RightCrop = 0;
+            public int brightnessCorrection = 0;
 
             public ImageLocationAndExtraInfo()
             {
             }
 
         }
-        public class ImageGroupTableInfo
+    
+    public class ImageGroupTableInfo
         {
             public TableLayoutPanel Table = new TableLayoutPanel();
             private ITGeotagger Parent;
             public ImageGroupTableInfo(ITGeotagger ITForm)
             {
                 this.Parent = ITForm;
-                this.Table.ColumnCount = 7;
+                this.Table.ColumnCount = 8;
                 this.Table.RowCount = 1;
                 this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
                 this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200F));
+                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60F));
                 this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60F));
                 this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
                 this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80F));
@@ -2935,20 +3187,36 @@ namespace MissionPlanner
                 this.Table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
                 this.Table.Controls.Add(new Label() { Text = "Folder Path", Dock = DockStyle.Fill }, 0, 0);
                 this.Table.Controls.Add(new Label() { Text = "Tlog", Dock = DockStyle.Fill }, 1, 0);
-                this.Table.Controls.Add(new Label() { Text = "Offset", Dock = DockStyle.Fill }, 2, 0);
-                this.Table.Controls.Add(new Label() { Text = "Pre-Procesing", Dock = DockStyle.Fill }, 3, 0);
-                this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 4, 0);
-                this.Table.Controls.Add(new Label() { Text = "Post-Procesing", Dock = DockStyle.Fill }, 5, 0);
-                this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 6, 0);
+                this.Table.Controls.Add(new Label() { Text = "Image Count", Dock = DockStyle.Fill }, 2, 0);
+                this.Table.Controls.Add(new Label() { Text = "Offset", Dock = DockStyle.Fill }, 3, 0);
+                this.Table.Controls.Add(new Label() { Text = "Pre-Procesing", Dock = DockStyle.Fill }, 4, 0);
+                this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 5, 0);
+                this.Table.Controls.Add(new Label() { Text = "Post-Procesing", Dock = DockStyle.Fill }, 6, 0);
+                this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 7, 0);
                 this.Table.AutoScroll = true;
             }
-            public void AddRow(string jpegpath, string tlogpath, string offset)
+            
+        async public void AddRow(string jpegpath, string tlogpath, string offset,int imageCount ,int timeout=0)
             {
-                CheckBox TmpCheck = new CheckBox() { Text = "", Dock = DockStyle.Fill, Anchor = ( AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft };
-                ProgressBar ProgBar = new ProgressBar() { Text = "", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 };
-                ProgressBar ProgBarCrop = new ProgressBar() { Text = "", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 };
-                Button PreBUTT = new Button() { Text = "Pre-process", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top),Height=35 };
-                Button PostBUTT = new Button() { Text = "Post-process", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top),Height = 35 };
+
+            timeout++;
+            if (timeout > 3)
+            {
+                Thread.Sleep(100);
+                return;
+            }
+
+            if (this.Parent.InvokeRequired)
+            {
+                this.Parent.Invoke(new Action<string, string, string, int, int>(AddRow), new object[] { jpegpath, tlogpath, offset, imageCount,timeout });
+                return;
+            }
+
+                CheckBox TmpCheck = new CheckBox() {Text = "", Dock = DockStyle.Fill, Anchor = ( AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft };
+                ProgressBar ProgBar = new ProgressBar() {Text = "", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 };
+                ProgressBar ProgBarCrop = new ProgressBar() {Text = "", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 };
+                Button PreBUTT = new Button() {Text = "Pre-process", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top),Height=35 };
+                Button PostBUTT = new Button() {Text = "Post-process", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top),Height = 35 };
 
                 PreBUTT.Click += new EventHandler(Parent.AddPreProcessToQue);
                 PostBUTT.Click += new EventHandler(Parent.ShowRowTurbineTab);
@@ -2959,12 +3227,12 @@ namespace MissionPlanner
                 this.Table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
                 this.Table.Controls.Add(new Label() { Text = jpegpath, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft, Height = 35 }, 0, this.Table.RowCount - 1);
                 this.Table.Controls.Add(new Label() { Text = tlogpath, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft, Height = 35 }, 1, this.Table.RowCount - 1);
-                this.Table.Controls.Add(new TextBox() { Text = offset, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 }, 2, this.Table.RowCount - 1);
-                this.Table.Controls.Add(PreBUTT, 3, this.Table.RowCount - 1);
-                this.Table.Controls.Add(ProgBar, 4, this.Table.RowCount - 1);
-                this.Table.Controls.Add(PostBUTT, 5, this.Table.RowCount - 1);
-                this.Table.Controls.Add(ProgBarCrop, 6, this.Table.RowCount - 1);
-
+                this.Table.Controls.Add(new Label() { Text = imageCount.ToString(), Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft, Height = 35 }, 2, this.Table.RowCount - 1);
+                this.Table.Controls.Add(new TextBox() { Text = offset, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 }, 3, this.Table.RowCount - 1);
+                this.Table.Controls.Add(PreBUTT, 4, this.Table.RowCount - 1);
+                this.Table.Controls.Add(ProgBar, 5, this.Table.RowCount - 1);
+                this.Table.Controls.Add(PostBUTT, 6, this.Table.RowCount - 1);
+                this.Table.Controls.Add(ProgBarCrop, 7, this.Table.RowCount - 1);
             }
 
         }
