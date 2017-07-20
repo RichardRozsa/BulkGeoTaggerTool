@@ -1,4 +1,4 @@
-﻿namespace MissionPlanner
+﻿namespace ITGeoTagger
 {
     partial class AltRemapSingleDialog
     {

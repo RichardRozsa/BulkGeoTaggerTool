@@ -17,7 +17,7 @@ using Emgu.CV.Shape;
 using Manina.Windows.Forms;
 using System.Diagnostics;
 
-namespace MissionPlanner
+namespace ITGeoTagger
 {
     partial class TurbineTab : UserControl
     {

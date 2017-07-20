@@ -17,7 +17,7 @@ using System.Text;
 using System.Xml;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using MissionPlanner;
+//using MissionPlanner;
 using MissionPlanner.Log;
 using System.Threading;
 using System.Threading.Tasks;

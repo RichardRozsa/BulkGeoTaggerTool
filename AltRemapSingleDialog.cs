@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MissionPlanner
+namespace ITGeoTagger
 {
     public partial class AltRemapSingleDialog : Form
     {
