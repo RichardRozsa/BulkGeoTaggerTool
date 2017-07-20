@@ -90,7 +90,6 @@ namespace ITGeoTagger.WindAMSObjects
                         myAsset.attributes = new Dictionary<AssetAttributeType, string>();
                         myAsset = await UpdateAssetAsync(myAsset);
                     }
-                    
                 }
                 else
                 {
@@ -109,7 +108,6 @@ namespace ITGeoTagger.WindAMSObjects
                     myAsset.serialNumber = "";
                     myAsset.siteId = myWorkOrder.siteId;
                     myAsset.type = "Wind_Turbine_Tower";
-
                     myAsset = await CreateAssetAsync(myAsset);
                 }
             }
