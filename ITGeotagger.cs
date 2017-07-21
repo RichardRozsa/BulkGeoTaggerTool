@@ -83,8 +83,6 @@ namespace ITGeoTagger
         public ITConfigFile appSavedData;
 
         public GPSOffsetCalculator MY_GPSOffsetCalculator;
-
-
         public ITGeotagger()
         {
             InitializeComponent();
@@ -122,9 +120,6 @@ namespace ITGeoTagger
             TIMER_THREAD_CHECKER.Start();
 
         }
-
-
-
         private async void BUT_GET_DIR_Click(object sender, EventArgs e)
         {
             DialogResult result = folderBrowserDialog1.ShowDialog();
@@ -187,7 +182,6 @@ namespace ITGeoTagger
                 }
             }
         }
-        
         private List<string> GetAllImageDirs(string SearchDir)
         {
 
@@ -1081,7 +1075,6 @@ namespace ITGeoTagger
                                              "GeoRefnetworklink.kml");
         }
         private static Regex r = new Regex(":");
-       
         async private void TagARow(int row)
         {
             string dirPictures = ATable.Table.GetControlFromPosition(0, row).Text;
@@ -1386,39 +1379,6 @@ namespace ITGeoTagger
             return ImageLocationList;
 
         }
-        private void CropImages(string PathToDir, ProgressBar PB)
-        {
-
-            DateTime FuncStartTime = DateTime.Now;
-            string[] ImageFiles = Directory.GetFiles(PathToDir, "*.JPG");
-            int cnt = 0;
-
-            foreach (string ImageFile in ImageFiles)
-            {
-                FuncStartTime = DateTime.Now;
-                try
-                {
-                    AppendLogTextBox("\nCropping " + Path.GetFileName(ImageFile));
-                    //AppendLogTextBox("\nMemory Before \t:" + GC.GetTotalMemory(true).ToString());
-                    using (Cropper Crop = new Cropper())
-                    {
-                        BladeCroppingSettings CropSettings = new BladeCroppingSettings(0, 0);
-                        Crop.process(CropSettings, ImageFile, ImageFile);
-                    }
-                    GC.Collect();
-                    //AppendLogTextBox("\nMemory After \t:" + GC.GetTotalMemory(true).ToString());
-                }
-                catch (Exception e)
-                {
-                    AppendLogTextBox(e.ToString());
-
-                }
-                cnt++;
-                setAProgbar(PB, ImageFiles.Length, cnt);
-                AppendLogTextBox("\nTook " + (DateTime.Now - FuncStartTime).TotalMilliseconds.ToString() + " milliseconds\n\n");
-            }
-
-        }
         public void setAProgbar(ProgressBar PB, int max, int val, int timeout = 0)
         {
             timeout++;
@@ -1696,6 +1656,7 @@ namespace ITGeoTagger
 
           }
      }
+
      public enum ImageLocationType { Pass1, Pass2, Pass3, Pass4, Pass5, Tip, Hub, Ground, Other, High, Low, Default }
 
 
