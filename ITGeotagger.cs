@@ -29,7 +29,6 @@ using Emgu.Util.TypeEnum;
 using Emgu.CV.Shape;
 using ITGeoTagger.WindAMSObjects;
 
-
 namespace ITGeoTagger
 {
     public partial class ITGeotagger : Form
@@ -42,16 +41,6 @@ namespace ITGeoTagger
 
         public string Myprocessor ="";
 
-        
-        //public List<Thread> PostThreads = new List<Thread>();
-        //List<Thread> PreThreads = new List<Thread>();
-        //int PostThreadReleaseBusyCount = 0;
-        //int PostThreadReleaseBusyMAX = 2;
-
-        //public Thread PreProcessThread;
-        //public Thread PostProcessThread;
-        
-        
         private const string PHOTO_FILES_FILTER = "*.jpg;*.tif";
         private const int JXL_ID_OFFSET = 10;
 
@@ -72,8 +61,7 @@ namespace ITGeoTagger
 
         private Hashtable filedatecache = new Hashtable();
         private List<int> JXL_StationIDs = new List<int>();
-        
-        
+
         public ImageGroupTableInfo ATable;
         private TableLayoutPanel TabOrganizer = new TableLayoutPanel();
 
@@ -83,17 +71,15 @@ namespace ITGeoTagger
         public float cameraShutterLag = (float)1.5;
 
         public ITConfigFile appSavedData;
-        public IT_ThreadManager My_IT_ThreadManager;
+        public IT_ThreadManager MY_IT_ThreadManager;
         public GPSOffsetCalculator MY_GPSOffsetCalculator;
+        public ImagePassSorter MY_ImagePassSorter;
         public ITGeotagger()
         {
             InitializeComponent();
             appSavedData = new ITConfigFile();
-            MY_GPSOffsetCalculator = new GPSOffsetCalculator(this);
+
             appSavedData.LoadFile();
-            //CHECK_AMSLAlt_Use.Checked = true;
-            //PANEL_TIME_OFFSET.Enabled = false;
-            //useAMSLAlt = CHECK_AMSLAlt_Use.Checked;
 
             MissionPlanner.Utilities.Tracking.AddPage(this.GetType().ToString(), this.Text);
 
@@ -107,19 +93,10 @@ namespace ITGeoTagger
             ATable.Table.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
 
             TabOrganize.Controls.Add(ATable.Table, 0, 1);
-            My_IT_ThreadManager = new IT_ThreadManager(this);
-            ////test create a new tab
-
-            //TabPage TetsPage = new TabPage();
-            //TurbineTab FirstsTAB = new TurbineTab("C:\\Users\\Kevin\\Desktop\\CropTests");
-
-            //FirstsTAB.Parent = TetsPage;
-            //FirstsTAB.Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
-            //FirstsTAB.Dock = DockStyle.Fill;
-
-            //MAIN_TAB_CONTROL.TabPages.Add(TetsPage);
-            //TIMER_THREAD_CHECKER.Interval = 10000;
-            //TIMER_THREAD_CHECKER.Start();
+            
+            MY_GPSOffsetCalculator = new GPSOffsetCalculator(this);
+            MY_IT_ThreadManager = new IT_ThreadManager(this);
+            MY_ImagePassSorter = new ImagePassSorter(this, 2);
 
         }
         private async void BUT_GET_DIR_Click(object sender, EventArgs e)
@@ -762,7 +739,7 @@ namespace ITGeoTagger
         {
             try
             {
-                this.My_IT_ThreadManager.PostThreadReleaseBusyCount = this.My_IT_ThreadManager.PostThreadReleaseBusyCount + 1;
+                this.MY_IT_ThreadManager.PostThreadReleaseBusyCount = this.MY_IT_ThreadManager.PostThreadReleaseBusyCount + 1;
 
                 // Save file into Geotag folder
                 string rootFolder = ImageGroup.BaseDirectory;
@@ -926,13 +903,13 @@ namespace ITGeoTagger
                 AppendLogTextBox("\nGeoTagging, Cropping and Upload thread finished \n");
 
                 EnableDisableButton((Button)this.ATable.Table.GetControlFromPosition(6, row),false,Color.LimeGreen,"Complete");
-                this.My_IT_ThreadManager.PostThreadReleaseBusyCount = this.My_IT_ThreadManager.PostThreadReleaseBusyCount - 1;
+                this.MY_IT_ThreadManager.PostThreadReleaseBusyCount = this.MY_IT_ThreadManager.PostThreadReleaseBusyCount - 1;
                 return ImageGroup;
                 
             }
             catch (Exception e)
             {
-                this.My_IT_ThreadManager.PostThreadReleaseBusyCount = this.My_IT_ThreadManager.PostThreadReleaseBusyCount - 1;
+                this.MY_IT_ThreadManager.PostThreadReleaseBusyCount = this.MY_IT_ThreadManager.PostThreadReleaseBusyCount - 1;
                 AppendLogTextBox("\n ******ERROR***** \n" + e.Message);
                 return ImageGroup;
             }
@@ -1238,7 +1215,7 @@ namespace ITGeoTagger
                     progCounter++;
                     setAProgbar(Progbar, RowImagesCollection.FullImageList.Count, progCounter);
                 }
-                RowImagesCollection = ImagePassSorter.SortImagesByPasses(RowImagesCollection);
+                RowImagesCollection = MY_ImagePassSorter.SortImagesByPasses(RowImagesCollection);
             }
             catch (Exception e)
             {
@@ -1463,53 +1440,12 @@ namespace ITGeoTagger
             TabPage tmpTabPage = MainTabs[ImageFolder];
             MAIN_TAB_CONTROL.TabPages.Remove(tmpTabPage);
         }
-        //private void TIMER_THREAD_CHECKER_Tick(object sender, EventArgs e)
-        //{
-        //    TIMER_THREAD_CHECKER.Enabled = false;
-        //    TIMER_THREAD_CHECKER.Interval = 1000;
-        //    if (PreProcessThread == null)
-        //    {
-        //        PreProcessThread = new Thread(DefaultFunction);
-        //    }
-        //    if (PostProcessThread == null)
-        //    {
-        //        PostProcessThread = new Thread(DefaultFunction);
-        //    }
-
-        //    //check threads
-        //    if (PreThreads.Count > 0) // priotise the prprocessing threads
-        //    {
-
-        //        if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive))
-        //        { //check if thread is live or we need a flag here
-        //            PreProcessThread = PreThreads[0];
-        //            GC.Collect(); //garbage collection
-        //            PreProcessThread.Start(); //start new background thread
-        //            PreThreads.RemoveAt(0);
-        //        }
-        //    }
-        //    else if (PostThreads.Count > 0)
-        //    {
-
-        //        if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive) && (this.PostThreadReleaseBusyCount < this.PostThreadReleaseBusyMAX)) //check if thread is alive
-        //        {
-        //            PostProcessThread = PostThreads[0]; //set thread to new thread
-        //            GC.Collect(); //garbage collection
-        //            PostProcessThread.Start(); //start new background thread
-        //            PostThreads.RemoveAt(0);
-        //        }
-
-        //    }
-
-        //    TIMER_THREAD_CHECKER.Enabled = true;
-        //    TIMER_THREAD_CHECKER.Start();
-        //}
         public void AddPreProcessToQue(object sender,EventArgs e) { 
             //add preprocessing to que
 
             TableLayoutPanelCellPosition cellpos = this.ATable.Table.GetCellPosition((Control)sender);
 
-            My_IT_ThreadManager.PreThreads.Add(new Thread(() => TagARow(cellpos.Row)));
+            MY_IT_ThreadManager.PreThreads.Add(new Thread(() => TagARow(cellpos.Row)));
             EnableDisableButton((Button)sender, false,Color.Yellow,"Processing");
         }
         public void ShowRowTurbineTab(object sender, EventArgs e)
@@ -1526,14 +1462,12 @@ namespace ITGeoTagger
         }
         public void ShowRowTurbineTabThread(Button sender, int row, ProgressBar CroppProgbar, string dirPictures)
         {
-
             if (!MainTabs.ContainsKey(((Label)ATable.Table.GetControlFromPosition(0, row)).Text))
             {
                 MainTabs.Add(dirPictures, new TabPage("+"));
             }
             CreateNewBladeTab(dirPictures, CroppProgbar, row);
         }
-        //public void DefaultFunction(){}
         private void MAIN_TAB_CONTROL_TabIndexChanged(object sender, EventArgs e)
          {
             //not used
@@ -1680,7 +1614,7 @@ namespace ITGeoTagger
 
         }
     public class ImageLocationAndExtraInfo
-        {
+    {
             public string PathToOrigionalImage = "";
             public string PathToSmallImage = "";
             public string PathToGreyImage = "";
@@ -1701,74 +1635,5 @@ namespace ITGeoTagger
             {
             }
 
-        }
-    
-    public class ImageGroupTableInfo
-        {
-            public TableLayoutPanel Table = new TableLayoutPanel();
-            private ITGeotagger Parent;
-            public ImageGroupTableInfo(ITGeotagger ITForm)
-            {
-                this.Parent = ITForm;
-                this.Table.ColumnCount = 8;
-                this.Table.RowCount = 1;
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
-                this.Table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80F));
-                this.Table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-                this.Table.Controls.Add(new Label() { Text = "Folder Path", Dock = DockStyle.Fill }, 0, 0);
-                this.Table.Controls.Add(new Label() { Text = "Tlog", Dock = DockStyle.Fill }, 1, 0);
-                this.Table.Controls.Add(new Label() { Text = "Image Count", Dock = DockStyle.Fill }, 2, 0);
-                this.Table.Controls.Add(new Label() { Text = "Offset", Dock = DockStyle.Fill }, 3, 0);
-                this.Table.Controls.Add(new Label() { Text = "Pre-Procesing", Dock = DockStyle.Fill }, 4, 0);
-                this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 5, 0);
-                this.Table.Controls.Add(new Label() { Text = "Post-Procesing", Dock = DockStyle.Fill }, 6, 0);
-                this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 7, 0);
-                this.Table.AutoScroll = true;
-            }     
-            async public void AddRow(string jpegpath, string tlogpath, string offset,int imageCount ,int timeout=0)
-            {
-
-            timeout++;
-            if (timeout > 3)
-            {
-                Thread.Sleep(100);
-                return;
-            }
-
-            if (this.Parent.InvokeRequired)
-            {
-                this.Parent.Invoke(new Action<string, string, string, int, int>(AddRow), new object[] { jpegpath, tlogpath, offset, imageCount,timeout });
-                return;
-            }
-
-                CheckBox TmpCheck = new CheckBox() {Text = "", Dock = DockStyle.Fill, Anchor = ( AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft };
-                ProgressBar ProgBar = new ProgressBar() {Text = "", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 };
-                ProgressBar ProgBarCrop = new ProgressBar() {Text = "", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 };
-                Button PreBUTT = new Button() {Text = "Pre-process", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top),Height=35 };
-                Button PostBUTT = new Button() {Text = "Post-process", Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top),Height = 35 };
-
-                PreBUTT.Click += new EventHandler(Parent.AddPreProcessToQue);
-                PostBUTT.Click += new EventHandler(Parent.ShowRowTurbineTab);
-
-                PostBUTT.Enabled = false;
-
-                this.Table.RowCount++;
-                this.Table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-                this.Table.Controls.Add(new Label() { Text = jpegpath, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft, Height = 35 }, 0, this.Table.RowCount - 1);
-                this.Table.Controls.Add(new Label() { Text = tlogpath, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft, Height = 35 }, 1, this.Table.RowCount - 1);
-                this.Table.Controls.Add(new Label() { Text = imageCount.ToString(), Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left), TextAlign = ContentAlignment.MiddleLeft, Height = 35 }, 2, this.Table.RowCount - 1);
-                this.Table.Controls.Add(new TextBox() { Text = offset, Dock = DockStyle.Fill, Anchor = (AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top), Height = 35 }, 3, this.Table.RowCount - 1);
-                this.Table.Controls.Add(PreBUTT, 4, this.Table.RowCount - 1);
-                this.Table.Controls.Add(ProgBar, 5, this.Table.RowCount - 1);
-                this.Table.Controls.Add(PostBUTT, 6, this.Table.RowCount - 1);
-                this.Table.Controls.Add(ProgBarCrop, 7, this.Table.RowCount - 1);
-            }
-
-        }
     }
+}

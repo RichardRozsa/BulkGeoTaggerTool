@@ -71,6 +71,7 @@ namespace ITGeoTagger
             thread_Checker.Enabled = true;
             thread_Checker.Start();
         }
+
         public void DefaultFunction() { }
     }
 }

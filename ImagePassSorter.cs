@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 
 namespace ITGeoTagger
 {
-    static class ImagePassSorter
+    public class ImagePassSorter
     {
-        public static double VerticalImageDistribution = 2;
+        public double VerticalImageDistribution;
 
-        public static ImageBladeGroup SortImagesByPasses(ImageBladeGroup ImageGroup)
+        public ImagePassSorter(ITGeotagger parent,double imageSpacing = 2) {
+
+            this.VerticalImageDistribution = imageSpacing;
+        
+        }
+        public ImageBladeGroup SortImagesByPasses(ImageBladeGroup ImageGroup)
         {
             ImageGroup.FullImageList = SortImagesByType(ImageGroup.FullImageList);
             ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass1);
@@ -21,7 +26,7 @@ namespace ITGeoTagger
 
             return ImageGroup;
         }
-        private static List<ImageLocationAndExtraInfo> GetListOfPass(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort)
+        private List<ImageLocationAndExtraInfo> GetListOfPass(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort)
         {
             List<ImageLocationAndExtraInfo> FilteredList = new List<ImageLocationAndExtraInfo>();
             foreach (ImageLocationAndExtraInfo image in ImageList)
@@ -33,7 +38,7 @@ namespace ITGeoTagger
             }
             return FilteredList;
         }
-        private static List<ImageLocationAndExtraInfo> MiddleOutSelect(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort)
+        private List<ImageLocationAndExtraInfo> MiddleOutSelect(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort)
         {
             List<ImageLocationAndExtraInfo> FilteredList = GetListOfPass(ImageList, passToSort);
 
@@ -125,7 +130,7 @@ namespace ITGeoTagger
             return ImageList;
 
         }
-        private static List<ImageLocationAndExtraInfo> SortImagesByType(List<ImageLocationAndExtraInfo> ImageLocationList)
+        private List<ImageLocationAndExtraInfo> SortImagesByType(List<ImageLocationAndExtraInfo> ImageLocationList)
         {
             double hubHeight = FindHubHeight(ImageLocationList);
             double tipHeight = FindTipHeight(ImageLocationList);
@@ -242,7 +247,7 @@ namespace ITGeoTagger
 
             return ImageLocationList;
         }
-        private static List<ImageLocationAndExtraInfo> FilterPassGoingUP(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
+        private List<ImageLocationAndExtraInfo> FilterPassGoingUP(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
         {
 
             //select items at a set vertical interval min
@@ -271,7 +276,7 @@ namespace ITGeoTagger
                         LastTipSelected = true;
                     }
                 }
-                else if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude >= LastVal + VerticalImageDistribution))
+                else if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
                 {
                     LastVal = tmpLastValue.Altitude;
                     tmpLastValue.selected = true;
@@ -281,7 +286,7 @@ namespace ITGeoTagger
             }
             return ImageLocationList;
         }
-        private static List<ImageLocationAndExtraInfo> FilterPassGoingDOWN(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
+        private List<ImageLocationAndExtraInfo> FilterPassGoingDOWN(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
         {
             //select items at a set interval min
             double LastVal = 9999999;
@@ -317,7 +322,7 @@ namespace ITGeoTagger
             }
             return ImageLocationList;
         }
-        private static double FindHubHeight(List<ImageLocationAndExtraInfo> ImageLocationList)
+        private double FindHubHeight(List<ImageLocationAndExtraInfo> ImageLocationList)
         {
 
             double MaxHubHeight = 0;
@@ -341,7 +346,7 @@ namespace ITGeoTagger
             return HubHeight;
 
         }
-        private static double FindTipHeight(List<ImageLocationAndExtraInfo> ImageLocationList)
+        private double FindTipHeight(List<ImageLocationAndExtraInfo> ImageLocationList)
         {
 
             double lowestTip = 10;

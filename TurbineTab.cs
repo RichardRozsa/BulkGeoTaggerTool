@@ -440,7 +440,7 @@ namespace ITGeoTagger
                         try
                         {
                             this.ParentForm.AppendLogTextBox("\n\nThread to process" + this.ImageGroup.BaseDirectory + " added to que\n");
-                            this.ParentForm.My_IT_ThreadManager.PostThreads.Add(new Thread(() => this.ParentForm.GeotagimagesCropandUpload(ImageGroup, this.PostProccessProgresBar, this.row, form.workOrderNumber, form.processor)));
+                            this.ParentForm.MY_IT_ThreadManager.PostThreads.Add(new Thread(() => this.ParentForm.GeotagimagesCropandUpload(ImageGroup, this.PostProccessProgresBar, this.row, form.workOrderNumber, form.processor)));
                             DisposeSelf();
 
                         }
