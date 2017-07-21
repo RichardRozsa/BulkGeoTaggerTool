@@ -43,13 +43,13 @@ namespace ITGeoTagger
         public string Myprocessor ="";
 
         
-        public List<Thread> PostThreads = new List<Thread>();
-        List<Thread> PreThreads = new List<Thread>();
-        int PostThreadReleaseBusyCount = 0;
-        int PostThreadReleaseBusyMAX = 2;
+        //public List<Thread> PostThreads = new List<Thread>();
+        //List<Thread> PreThreads = new List<Thread>();
+        //int PostThreadReleaseBusyCount = 0;
+        //int PostThreadReleaseBusyMAX = 2;
 
-        public Thread PreProcessThread;
-        public Thread PostProcessThread;
+        //public Thread PreProcessThread;
+        //public Thread PostProcessThread;
         
         
         private const string PHOTO_FILES_FILTER = "*.jpg;*.tif";
@@ -83,7 +83,7 @@ namespace ITGeoTagger
         public float cameraShutterLag = (float)1.5;
 
         public ITConfigFile appSavedData;
-
+        public IT_ThreadManager My_IT_ThreadManager;
         public GPSOffsetCalculator MY_GPSOffsetCalculator;
         public ITGeotagger()
         {
@@ -107,7 +107,7 @@ namespace ITGeoTagger
             ATable.Table.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
 
             TabOrganize.Controls.Add(ATable.Table, 0, 1);
-
+            My_IT_ThreadManager = new IT_ThreadManager(this);
             ////test create a new tab
 
             //TabPage TetsPage = new TabPage();
@@ -118,8 +118,8 @@ namespace ITGeoTagger
             //FirstsTAB.Dock = DockStyle.Fill;
 
             //MAIN_TAB_CONTROL.TabPages.Add(TetsPage);
-            TIMER_THREAD_CHECKER.Interval = 10000;
-            TIMER_THREAD_CHECKER.Start();
+            //TIMER_THREAD_CHECKER.Interval = 10000;
+            //TIMER_THREAD_CHECKER.Start();
 
         }
         private async void BUT_GET_DIR_Click(object sender, EventArgs e)
@@ -762,7 +762,7 @@ namespace ITGeoTagger
         {
             try
             {
-                this.PostThreadReleaseBusyCount = this.PostThreadReleaseBusyCount+1;
+                this.My_IT_ThreadManager.PostThreadReleaseBusyCount = this.My_IT_ThreadManager.PostThreadReleaseBusyCount + 1;
 
                 // Save file into Geotag folder
                 string rootFolder = ImageGroup.BaseDirectory;
@@ -926,13 +926,13 @@ namespace ITGeoTagger
                 AppendLogTextBox("\nGeoTagging, Cropping and Upload thread finished \n");
 
                 EnableDisableButton((Button)this.ATable.Table.GetControlFromPosition(6, row),false,Color.LimeGreen,"Complete");
-                this.PostThreadReleaseBusyCount = this.PostThreadReleaseBusyCount - 1;
+                this.My_IT_ThreadManager.PostThreadReleaseBusyCount = this.My_IT_ThreadManager.PostThreadReleaseBusyCount - 1;
                 return ImageGroup;
                 
             }
             catch (Exception e)
             {
-                this.PostThreadReleaseBusyCount = this.PostThreadReleaseBusyCount - 1;
+                this.My_IT_ThreadManager.PostThreadReleaseBusyCount = this.My_IT_ThreadManager.PostThreadReleaseBusyCount - 1;
                 AppendLogTextBox("\n ******ERROR***** \n" + e.Message);
                 return ImageGroup;
             }
@@ -1463,53 +1463,53 @@ namespace ITGeoTagger
             TabPage tmpTabPage = MainTabs[ImageFolder];
             MAIN_TAB_CONTROL.TabPages.Remove(tmpTabPage);
         }
-        private void TIMER_THREAD_CHECKER_Tick(object sender, EventArgs e)
-        {
-            TIMER_THREAD_CHECKER.Enabled = false;
-            TIMER_THREAD_CHECKER.Interval = 1000;
-            if (PreProcessThread == null)
-            {
-                PreProcessThread = new Thread(DefaultFunction);
-            }
-            if (PostProcessThread == null)
-            {
-                PostProcessThread = new Thread(DefaultFunction);
-            }
+        //private void TIMER_THREAD_CHECKER_Tick(object sender, EventArgs e)
+        //{
+        //    TIMER_THREAD_CHECKER.Enabled = false;
+        //    TIMER_THREAD_CHECKER.Interval = 1000;
+        //    if (PreProcessThread == null)
+        //    {
+        //        PreProcessThread = new Thread(DefaultFunction);
+        //    }
+        //    if (PostProcessThread == null)
+        //    {
+        //        PostProcessThread = new Thread(DefaultFunction);
+        //    }
 
-            //check threads
-            if (PreThreads.Count > 0) // priotise the prprocessing threads
-            {
-                
-                if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive))
-                    { //check if thread is live or we need a flag here
-                        PreProcessThread = PreThreads[0];
-                        GC.Collect(); //garbage collection
-                        PreProcessThread.Start(); //start new background thread
-                        PreThreads.RemoveAt(0);
-                    }
-            }
-            else if (PostThreads.Count > 0)
-            {
+        //    //check threads
+        //    if (PreThreads.Count > 0) // priotise the prprocessing threads
+        //    {
 
-                if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive)&&(this.PostThreadReleaseBusyCount < this.PostThreadReleaseBusyMAX)) //check if thread is alive
-                {
-                    PostProcessThread = PostThreads[0]; //set thread to new thread
-                    GC.Collect(); //garbage collection
-                    PostProcessThread.Start(); //start new background thread
-                    PostThreads.RemoveAt(0);
-                }
+        //        if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive))
+        //        { //check if thread is live or we need a flag here
+        //            PreProcessThread = PreThreads[0];
+        //            GC.Collect(); //garbage collection
+        //            PreProcessThread.Start(); //start new background thread
+        //            PreThreads.RemoveAt(0);
+        //        }
+        //    }
+        //    else if (PostThreads.Count > 0)
+        //    {
 
-            }
+        //        if ((!PreProcessThread.IsAlive) && (!PostProcessThread.IsAlive) && (this.PostThreadReleaseBusyCount < this.PostThreadReleaseBusyMAX)) //check if thread is alive
+        //        {
+        //            PostProcessThread = PostThreads[0]; //set thread to new thread
+        //            GC.Collect(); //garbage collection
+        //            PostProcessThread.Start(); //start new background thread
+        //            PostThreads.RemoveAt(0);
+        //        }
 
-            TIMER_THREAD_CHECKER.Enabled = true;
-            TIMER_THREAD_CHECKER.Start();
-        }
+        //    }
+
+        //    TIMER_THREAD_CHECKER.Enabled = true;
+        //    TIMER_THREAD_CHECKER.Start();
+        //}
         public void AddPreProcessToQue(object sender,EventArgs e) { 
             //add preprocessing to que
 
             TableLayoutPanelCellPosition cellpos = this.ATable.Table.GetCellPosition((Control)sender);
 
-            PreThreads.Add( new Thread(() =>TagARow(cellpos.Row)));
+            My_IT_ThreadManager.PreThreads.Add(new Thread(() => TagARow(cellpos.Row)));
             EnableDisableButton((Button)sender, false,Color.Yellow,"Processing");
         }
         public void ShowRowTurbineTab(object sender, EventArgs e)
@@ -1533,7 +1533,7 @@ namespace ITGeoTagger
             }
             CreateNewBladeTab(dirPictures, CroppProgbar, row);
         }
-        public void DefaultFunction(){}
+        //public void DefaultFunction(){}
         private void MAIN_TAB_CONTROL_TabIndexChanged(object sender, EventArgs e)
          {
             //not used

@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.TXT_outputlog = new System.Windows.Forms.RichTextBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -40,7 +39,6 @@
             this.MAIN_TAB_CONTROL = new System.Windows.Forms.TabControl();
             this.Alltab = new System.Windows.Forms.TabPage();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-            this.TIMER_THREAD_CHECKER = new System.Windows.Forms.Timer(this.components);
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.TabOrganize.SuspendLayout();
@@ -143,7 +141,7 @@
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 27.20588F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 399F));
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 401F));
             this.tableLayoutPanel3.Controls.Add(this.textBox1, 4, 0);
             this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
@@ -157,9 +155,9 @@
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(558, 3);
+            this.textBox1.Location = new System.Drawing.Point(555, 3);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(395, 27);
+            this.textBox1.Size = new System.Drawing.Size(398, 27);
             this.textBox1.TabIndex = 2;
             this.textBox1.Text = "JobNumber";
             this.textBox1.Visible = false;
@@ -189,10 +187,6 @@
             this.Alltab.TabIndex = 0;
             this.Alltab.Text = "Overview";
             this.Alltab.UseVisualStyleBackColor = true;
-            // 
-            // TIMER_THREAD_CHECKER
-            // 
-            this.TIMER_THREAD_CHECKER.Tick += new System.EventHandler(this.TIMER_THREAD_CHECKER_Tick);
             // 
             // ITGeotagger
             // 
@@ -225,7 +219,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TableLayoutPanel TabOrganize;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
-        private System.Windows.Forms.Timer TIMER_THREAD_CHECKER;
         private System.Windows.Forms.TextBox textBox1;
     }
 }
