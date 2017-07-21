@@ -17,7 +17,7 @@ using System.Text;
 using System.Xml;
 using System.Text.RegularExpressions;
 using System.Globalization;
-//using MissionPlanner;
+using MissionPlanner;
 using MissionPlanner.Log;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,7 +89,6 @@ namespace ITGeoTagger
             appSavedData.LoadFile();
             //CHECK_AMSLAlt_Use.Checked = true;
             //PANEL_TIME_OFFSET.Enabled = false;
-
             //useAMSLAlt = CHECK_AMSLAlt_Use.Checked;
 
             MissionPlanner.Utilities.Tracking.AddPage(this.GetType().ToString(), this.Text);
@@ -182,8 +181,7 @@ namespace ITGeoTagger
                 }
             }
         }
-
-      private async Task<float> GetImagetoTriggerOffset(string dirPictures, string logFile)
+        private async Task<float> GetImagetoTriggerOffset(string dirPictures, string logFile)
         {
             string logFilePath = Path.Combine(dirPictures, logFile);
             if (!File.Exists(logFilePath))
@@ -232,7 +230,6 @@ namespace ITGeoTagger
             return ImageDirs;
 
         }
-
         static List<string> DirSearch(string sDir)
         {
             List<string> DirList = new List<string>();
@@ -275,8 +272,8 @@ namespace ITGeoTagger
         // <summary>
         // Get a photos shutter time
         // </summary>
-        /// <param name="fn"></param>
-        /// <returns></returns>
+        // <param name="fn"></param>
+        // returns></returns>
         private DateTime getPhotoTime(string fn)
         {
             DateTime dtaken = DateTime.MinValue;
@@ -341,17 +338,15 @@ namespace ITGeoTagger
 
             return dtaken;
         }
-
         public string UseGpsorGPS2()
         {
             return "GPS";
         }
-
-        ///// <summary>
-        ///// Return a list of all gps messages with there timestamp from the log
-        ///// </summary>
-        ///// <param name="fn"></param>
-        ///// <returns></returns>
+        // <summary>
+        // Return a list of all gps messages with there timestamp from the log
+        // </summary>
+        // <param name="fn"></param>
+        // <returns></returns>
         private Dictionary<long, VehicleLocation> readGPSMsgInLog(string fn)
         {
             Dictionary<long, VehicleLocation> vehiclePositionList = new Dictionary<long, VehicleLocation>();
@@ -499,15 +494,11 @@ namespace ITGeoTagger
 
             return vehiclePositionList;
         }
-
-       
-
         public DateTime FromUTCTimeMilliseconds(long milliseconds)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return epoch.AddMilliseconds(milliseconds);
         }
-
         public DateTime GetTimeFromGps(int weeknumber, int milliseconds)
         {
             int LEAP_SECONDS = 17;
@@ -518,14 +509,11 @@ namespace ITGeoTagger
 
             return time.AddSeconds(-LEAP_SECONDS);
         }
-
         public long ToMilliseconds(DateTime date)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return Convert.ToInt64((date - epoch).TotalMilliseconds);
         }
-
-
         private void GenerateNewLocations(Dictionary<string, PictureInformation> listPhotosWithInfo, string dirWithImages,float offset)
         {
 
@@ -553,9 +541,7 @@ namespace ITGeoTagger
                     tstamp.When = picInfo.Time;
                 }
         }
-
-        private VehicleLocation LookForLocation(DateTime t, Dictionary<long, VehicleLocation> listLocations,
-            int offsettime = 2000)
+        private VehicleLocation LookForLocation(DateTime t, Dictionary<long, VehicleLocation> listLocations,int offsettime = 2000)
         {
             long time = ToMilliseconds(t);
 
@@ -591,7 +577,6 @@ namespace ITGeoTagger
 
             return location;
         }
-
         public Dictionary<string, PictureInformation> doworkGPSOFFSET(string logFile, string dirWithImages, float offset)
         {
             // Lets start over 
@@ -719,24 +704,20 @@ namespace ITGeoTagger
 
             return picturesInformationTemp;
         }
-
         private int compareFileByPhotoTime(string x, string y)// ToDo rewrite this to not open file each time
         {
             if (getPhotoTime(x) < getPhotoTime(y)) return -1;
             if (getPhotoTime(x) > getPhotoTime(y)) return 1;
             return 0;
         }
-
         public static double radians(double val)
         {
             return val * deg2rad;
         }
-
         public static double degrees(double val)
         {
             return val * rad2deg;
         }
-
         private void newpos(ref double lat, ref double lon, double bearing, double distance)
         {
             // '''extrapolate latitude/longitude given a heading and distance 
@@ -759,7 +740,6 @@ namespace ITGeoTagger
             lon = degrees(lon2);
             //return (degrees(lat2), degrees(lon2));
         }
-
         private void writeGPX(string filename, Dictionary<string, PictureInformation> pictureList)
         {
             using (
@@ -798,7 +778,6 @@ namespace ITGeoTagger
             }
 
         }
-
         public async Task<ImageBladeGroup> GeotagimagesCropandUpload(ImageBladeGroup ImageGroup, ProgressBar PBar,int row,string workOrderNumber,string processedBy)
         {
             try
@@ -978,7 +957,6 @@ namespace ITGeoTagger
                 return ImageGroup;
             }
         }
-
         private byte[] coordtobytearray(double coordin)
         {
             double coord = Math.Abs(coordin);
@@ -1011,7 +989,6 @@ namespace ITGeoTagger
             */
             return output;
         }
-
         private ImageLocationAndExtraInfo WriteCoordinatesToImage(string jpgdir, ImageLocationAndExtraInfo imageInfo)
         {
 
@@ -1113,16 +1090,13 @@ namespace ITGeoTagger
 
             return imageInfo;
         }
-
         private void Networklinkgeoref()
         {
             System.Diagnostics.Process.Start(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) +
                                              Path.DirectorySeparatorChar + "m3u" + Path.DirectorySeparatorChar +
                                              "GeoRefnetworklink.kml");
         }
-
         private static Regex r = new Regex(":");
-        
         public static DateTime GetDateTakenFromImage(string path)
         {
             try
@@ -1140,7 +1114,6 @@ namespace ITGeoTagger
                 return new DateTime();
             }
         }
-
         private List<string> GetAllImagesinDirectory(string ImageDir)
         { // get collection of images on the card
             IEnumerable<string> ImageFiles = Directory.EnumerateFiles(ImageDir, "*.JPG", SearchOption.TopDirectoryOnly);
@@ -1158,7 +1131,6 @@ namespace ITGeoTagger
             }
             return ImageFileList;
         }
-
         async private Task<DateTime> GetFirstSustainedImageTime(string ImageDir)
         {
             DateTime SusImTime = new DateTime();
@@ -1284,7 +1256,6 @@ namespace ITGeoTagger
             }
             return SusTrigTime;
         }
-
         async private void TagARow(int row)
         {
             string dirPictures = ATable.Table.GetControlFromPosition(0, row).Text;
@@ -1446,7 +1417,7 @@ namespace ITGeoTagger
                     progCounter++;
                     setAProgbar(Progbar, RowImagesCollection.FullImageList.Count, progCounter);
                 }
-                RowImagesCollection = SortImagesByPasses(RowImagesCollection);
+                RowImagesCollection = ImagePassSorter.SortImagesByPasses(RowImagesCollection);
             }
             catch (Exception e)
             {
@@ -1518,7 +1489,6 @@ namespace ITGeoTagger
                 AppendLogTextBox("\n ******ERROR***** \n" + e.ToString());
             }
         }
-
         private void CreateNewBladeTab(string BaseDir, ProgressBar PB,int row ,int timeout = 0)
         {
 
@@ -1551,8 +1521,6 @@ namespace ITGeoTagger
             }
 
         }
-
-
         private List<ImageLocationAndExtraInfo> CreateImageInfoList(Dictionary<string, PictureInformation> PictureData)
         {
             // for each image get geo data
@@ -1592,372 +1560,6 @@ namespace ITGeoTagger
             return ImageLocationList;
 
         }
-        private List<ImageLocationAndExtraInfo> GetListOfPass(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort) {
-            List<ImageLocationAndExtraInfo> FilteredList = new List<ImageLocationAndExtraInfo>();
-            foreach (ImageLocationAndExtraInfo image in ImageList)
-            {
-                if (image.Type == passToSort)
-                {
-                    FilteredList.Add(image);
-                }
-            }
-            return FilteredList;
-        }
-
-        private List<ImageLocationAndExtraInfo> MiddleOutSelect(List<ImageLocationAndExtraInfo> ImageList, ImageLocationType passToSort)
-        {
-            List<ImageLocationAndExtraInfo> FilteredList = GetListOfPass(ImageList, passToSort);
-
-            //split list in middle
-            List<ImageLocationAndExtraInfo> FilteredListFirstHalf = FilteredList.GetRange(0, FilteredList.Count / 2);
-            FilteredListFirstHalf.Reverse();
-            List<ImageLocationAndExtraInfo> FilteredListSecondHalf = FilteredList.GetRange((FilteredList.Count / 2) - 1, FilteredList.Count / 2); ;
-
-
-            if ((passToSort == ImageLocationType.Pass1) || (passToSort == ImageLocationType.Pass3))
-            {
-                //Filter first half in reverse down
-                double LastVal = 99999999;
-                ImageLocationAndExtraInfo LastSelected = FilteredListFirstHalf.First();
-                ImageLocationAndExtraInfo tmpLastValue = FilteredListFirstHalf.First();
-                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListFirstHalf)
-                {
-                    // select last hub shot
-                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude <= LastVal - this.VerticalImageDistribution))
-                    {
-                        LastSelected = ImageLoc;
-                        LastVal = tmpLastValue.Altitude;
-                        tmpLastValue.selected = true;
-                    }
-                    tmpLastValue = ImageLoc;
-                }
-                FilteredListFirstHalf.Last().selected = true;
-                //filter second half forward up
-                LastVal = 0;
-                tmpLastValue = FilteredListSecondHalf.First();
-                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListSecondHalf)
-                {
-                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
-                    {
-                        LastSelected = ImageLoc;
-                        LastVal = tmpLastValue.Altitude;
-
-                        tmpLastValue.selected = true;
-                    }
-                    tmpLastValue = ImageLoc;
-                }
-                LastSelected.selected = true;
-            }
-            else if ((passToSort == ImageLocationType.Pass2) || (passToSort == ImageLocationType.Pass4))
-            {
-                //Filter first half in reverse up
-                double LastVal = 0;
-                ImageLocationAndExtraInfo LastSelected = FilteredListFirstHalf.First();
-                ImageLocationAndExtraInfo tmpLastValue = FilteredListFirstHalf.First();
-                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListFirstHalf)
-                {
-                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
-                    {
-                        LastSelected = ImageLoc;
-                        LastVal = tmpLastValue.Altitude;
-                        tmpLastValue.selected = true;
-                    }
-                    tmpLastValue = ImageLoc;
-                }
-                LastSelected.selected = true;
-                //filter second half forward down
-                LastVal = 99999999;
-                tmpLastValue = FilteredListSecondHalf.First();
-                foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListSecondHalf)
-                {
-                    // select last hub shot
-                    if ((ImageLoc.Type == passToSort) && (ImageLoc.Altitude <= LastVal - this.VerticalImageDistribution))
-                    {
-                        LastSelected = ImageLoc;
-                        LastVal = tmpLastValue.Altitude;
-                        tmpLastValue.selected = true;
-                    }
-                    tmpLastValue = ImageLoc;
-                }
-                LastSelected.selected = true;
-            }
-
-            //for each element in the two half lists update the main list
-            foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListFirstHalf)
-            {
-                if (ImageLoc.selected) ImageList.Find(x => x.PathToOrigionalImage == ImageLoc.PathToOrigionalImage).selected = true;
-            }
-            foreach (ImageLocationAndExtraInfo ImageLoc in FilteredListSecondHalf)
-            {
-                if (ImageLoc.selected) ImageList.Find(x => x.PathToOrigionalImage == ImageLoc.PathToOrigionalImage).selected = true;
-            }
-
-
-            return ImageList;
-
-        }
-
-        private ImageBladeGroup SortImagesByPasses(ImageBladeGroup ImageGroup)
-        {
-
-            ImageGroup.FullImageList = SortImagesByType(ImageGroup.FullImageList);
-
-            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass1);
-            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass2);
-            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass3);
-            ImageGroup.FullImageList = MiddleOutSelect(ImageGroup.FullImageList, ImageLocationType.Pass4);
-            ImageGroup.FullImageList = GetTipImages(ImageGroup.FullImageList);
-
-            return ImageGroup;
-        }
-
-
-        private List<ImageLocationAndExtraInfo> SortImagesByType(List<ImageLocationAndExtraInfo> ImageLocationList)
-        {
-            double hubHeight = FindHubHeight(ImageLocationList);
-            double tipHeight = FindTipHeight(ImageLocationList);
-
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if ((ImageLoc.Altitude < 10)) { ImageLoc.Type = ImageLocationType.Ground; }
-                else if (ImageLoc.Altitude > hubHeight - 8) { ImageLoc.Type = ImageLocationType.High; }
-                else if ((ImageLoc.Altitude > 10) && (ImageLoc.Altitude < tipHeight + 8)) { ImageLoc.Type = ImageLocationType.Low; }
-                
-            }
-            int hubCNT = 0;
-            int tipCNT = 0;
-            ImageLocationType tempType = ImageLocationType.Pass1;
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if (ImageLoc.Type == ImageLocationType.High)
-                {
-                    hubCNT++;
-                }
-                else
-                {
-                    hubCNT = 0;
-                }
-                if (ImageLoc.Type == ImageLocationType.Low)
-                {
-                    tipCNT++;
-                }
-                else
-                {
-                    tipCNT = 0;
-                }
-
-                if ((hubCNT > 4) && (tempType == ImageLocationType.Pass1) && (ImageLoc.VertVelocity < 0))
-                {
-                    tempType = ImageLocationType.Pass2;
-                }
-                if ((tipCNT > 4) && (tempType == ImageLocationType.Pass2) && (ImageLoc.VertVelocity > 0))
-                {
-                    tempType = ImageLocationType.Pass3;
-                }
-                if ((hubCNT > 4) && (tempType == ImageLocationType.Pass3) && (ImageLoc.VertVelocity < 0))
-                {
-                    tempType = ImageLocationType.Pass4;
-                }
-                if (ImageLoc.Type != ImageLocationType.Ground)
-                {
-                    ImageLoc.Type = tempType;
-                }
-            }
-
-            return ImageLocationList;
-        }
-
-        private List<ImageLocationAndExtraInfo> GetTipImages(List<ImageLocationAndExtraInfo> ImageLocationList) {
-
-            double TipShotHeight = 100000;
-            //find tip canidates
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if ((ImageLoc.Type == ImageLocationType.Pass2) || (ImageLoc.Type == ImageLocationType.Pass3))
-                {
-                    if (ImageLoc.Altitude < TipShotHeight)
-                    {
-                        TipShotHeight = ImageLoc.Altitude;
-                    }
-                }
-            }
-            double sum = 0;
-            double CNT = 0;
-            //get average of tip canidates
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if ((ImageLoc.Type == ImageLocationType.Pass2) || (ImageLoc.Type == ImageLocationType.Pass3))
-                {
-                    if (ImageLoc.Altitude < TipShotHeight + 2)
-                    {
-                        sum = ImageLoc.Altitude + sum;
-                        CNT++;
-                    }
-                }
-            }
-            //pull tip photos from pass 2&3
-
-            List<ImageLocationAndExtraInfo> tmpTipPhotos = new List<ImageLocationAndExtraInfo>();
-
-            double T_Height = sum / CNT;
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if (((ImageLoc.Type == ImageLocationType.Pass2) || (ImageLoc.Type == ImageLocationType.Pass3)) && (ImageLoc.selected==false))
-                {
-                    if (ImageLoc.Altitude < T_Height + .3)
-                    {
-                        ImageLoc.Type = ImageLocationType.Pass5;
-                        tmpTipPhotos.Add(ImageLoc);
-                    }
-                }
-            }
-            int totalTipCount = tmpTipPhotos.Count;
-            
-            //select best guess 5
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[2].PathToOrigionalImage).selected = true;
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[totalTipCount / 4].PathToOrigionalImage).selected = true;
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[totalTipCount/2].PathToOrigionalImage).selected = true;
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[(3*totalTipCount)/4].PathToOrigionalImage).selected = true;
-            if (totalTipCount > 5)
-            {
-                ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos[totalTipCount-2].PathToOrigionalImage).selected = true;
-            }
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.First().PathToOrigionalImage).selected = true;
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.First().PathToOrigionalImage).Type = ImageLocationType.Pass2;
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.Last().PathToOrigionalImage).selected = true;
-            ImageLocationList.Find(x => x.PathToOrigionalImage == tmpTipPhotos.Last().PathToOrigionalImage).Type = ImageLocationType.Pass3;
-
-            return ImageLocationList;
-        }
-
-
-        private List<ImageLocationAndExtraInfo> FilterPassGoingUP(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
-        {
-           
-            //select items at a set vertical interval min
-
-            double LastVal = 0;
-            List<ImageLocationAndExtraInfo> tmpList = new List<ImageLocationAndExtraInfo>();
-            ImageLocationAndExtraInfo tmpLastValue = ImageLocationList.First();
-            bool firstTipSelected = false;
-            bool LastTipSelected = false;
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                // select last hub shot
-                if ((ImageLoc.Type == PassNum) && (!firstTipSelected))
-                {
-                    firstTipSelected = true;
-                    LastVal = tmpLastValue.Altitude;
-                }
-                else if ((ImageLoc.Type == PassNum) && (firstTipSelected) && (!LastTipSelected))
-                {
-                    if (tmpLastValue.Altitude < LastVal) LastVal = tmpLastValue.Altitude;
-                    if (ImageLoc.Altitude > LastVal + .4)
-                    {
-
-                        tmpLastValue.selected = true;
-                        LastVal = tmpLastValue.Altitude;
-                        LastTipSelected = true;
-                    }
-                }
-                else if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude >= LastVal + this.VerticalImageDistribution))
-                {
-                    LastVal = tmpLastValue.Altitude;
-                    tmpLastValue.selected = true;
-                }
-
-                tmpLastValue = ImageLoc;
-            }
-            return ImageLocationList;
-        }
-        private List<ImageLocationAndExtraInfo> FilterPassGoingDOWN(List<ImageLocationAndExtraInfo> ImageLocationList, ImageLocationType PassNum)
-        {
-            //select items at a set interval min
-            double LastVal = 9999999;
-            ImageLocationAndExtraInfo tmpLastValue = ImageLocationList.First();
-            bool firstHubSelected = false;
-            bool LastHubSelected = false;
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                // select last hub shot
-                if((ImageLoc.Type == PassNum)&&(!firstHubSelected)){
-                    firstHubSelected = true;
-                    LastVal = tmpLastValue.Altitude;
-                }
-                else if ((ImageLoc.Type == PassNum) && (firstHubSelected) && (!LastHubSelected)) {
-                    if (tmpLastValue.Altitude > LastVal) LastVal = tmpLastValue.Altitude;
-                    if (ImageLoc.Altitude < LastVal -.3) {
-
-                        tmpLastValue.selected = true;
-
-                        LastVal = tmpLastValue.Altitude;
-                        LastHubSelected = true; 
-                    }
-                }
-                else if ((ImageLoc.Type == PassNum) && (ImageLoc.Altitude <= LastVal - this.VerticalImageDistribution))
-                {
-                    LastVal = tmpLastValue.Altitude;
-                    tmpLastValue.selected = true;
-                }
-                tmpLastValue = ImageLoc;
-            }
-            return ImageLocationList;
-        }
-        private double FindHubHeight(List<ImageLocationAndExtraInfo> ImageLocationList)
-        {
-
-            double MaxHubHeight = 0;
-            double HubHeight = 0;
-
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-
-                if (ImageLoc.Altitude > MaxHubHeight) { MaxHubHeight = ImageLoc.Altitude; }
-            }
-            int cnt = 0;
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if (ImageLoc.Altitude > MaxHubHeight - 2)
-                {
-                    HubHeight = HubHeight + ImageLoc.Altitude;
-                    cnt++;
-                }
-            }
-            HubHeight = HubHeight / cnt;
-            return HubHeight;
-
-        }
-
-        private double FindTipHeight(List<ImageLocationAndExtraInfo> ImageLocationList)
-        {
-
-            double lowestTip = 10;
-
-            double MinTipHeight = 100000;
-            double TipHeight = 0;
-
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-                if ((ImageLoc.Altitude < MinTipHeight) && (ImageLoc.Altitude > lowestTip) && (ImageLoc.VertVelocity > -.3) && (ImageLoc.VertVelocity < .3)) { MinTipHeight = ImageLoc.Altitude; }
-            }
-            int cnt = 0;
-            foreach (ImageLocationAndExtraInfo ImageLoc in ImageLocationList)
-            {
-
-                if ((ImageLoc.Altitude < MinTipHeight + 2) && (ImageLoc.Altitude > lowestTip))
-                {
-                    TipHeight = TipHeight + ImageLoc.Altitude;
-                    cnt++;
-                }
-            }
-            if (cnt < 10)
-            {
-                Console.WriteLine("Tip Height Selection probably not made well");
-            }
-            TipHeight = TipHeight / cnt;
-            return TipHeight;
-        }
-
         private void CropImages(string PathToDir, ProgressBar PB)
         {
 
@@ -1991,7 +1593,6 @@ namespace ITGeoTagger
             }
 
         }
-        
         public void setAProgbar(ProgressBar PB, int max, int val, int timeout = 0)
         {
             timeout++;
@@ -2023,7 +1624,6 @@ namespace ITGeoTagger
             }
             TC.TabPages.Add(TP);
         }
-
         public void AppendLogTextBox(string value, int timeout = 0)
         {
             timeout++;
@@ -2070,13 +1670,11 @@ namespace ITGeoTagger
             int index = MAIN_TAB_CONTROL.SelectedIndex;
             return index;
         }
-
         public void removeTurbineTabfrom(String ImageFolder)
         {
             TabPage tmpTabPage = MainTabs[ImageFolder];
             MAIN_TAB_CONTROL.TabPages.Remove(tmpTabPage);
         }
-
         private void TIMER_THREAD_CHECKER_Tick(object sender, EventArgs e)
         {
             TIMER_THREAD_CHECKER.Enabled = false;
@@ -2118,7 +1716,6 @@ namespace ITGeoTagger
             TIMER_THREAD_CHECKER.Enabled = true;
             TIMER_THREAD_CHECKER.Start();
         }
-
         public void AddPreProcessToQue(object sender,EventArgs e) { 
             //add preprocessing to que
 
@@ -2148,26 +1745,24 @@ namespace ITGeoTagger
             }
             CreateNewBladeTab(dirPictures, CroppProgbar, row);
         }
-
-         public void DefaultFunction(){}
-
-         private void MAIN_TAB_CONTROL_TabIndexChanged(object sender, EventArgs e)
+        public void DefaultFunction(){}
+        private void MAIN_TAB_CONTROL_TabIndexChanged(object sender, EventArgs e)
          {
             //not used
              
          }
-         public void RemoveTabFromMainTabControl(string baseDirectory) {
+        public void RemoveTabFromMainTabControl(string baseDirectory) {
 
              TabPage tmpTabPage = MainTabs[baseDirectory];
              MAIN_TAB_CONTROL.TabPages.Remove(tmpTabPage);
              MainTabs.Remove(baseDirectory);
 
          }
-         private void textBox1_TextChanged(object sender, EventArgs e)
+        private void textBox1_TextChanged(object sender, EventArgs e)
          {
 
          }
-         async public Task<ImageLocationAndExtraInfo> SaveGrayedOutImage(ImageLocationAndExtraInfo imageInfo, int LeftCrop, int RightCrop,int brightnessCorrection)
+        async public Task<ImageLocationAndExtraInfo> SaveGrayedOutImage(ImageLocationAndExtraInfo imageInfo, int LeftCrop, int RightCrop,int brightnessCorrection)
          {
              Image<Bgr, Byte> GrayedOutImage = new Image<Bgr, Byte>(imageInfo.PathToSmallImage);
 
@@ -2247,8 +1842,7 @@ namespace ITGeoTagger
              GrayedOutImage.Dispose();
              return imageInfo;
          }
-
-         private void button1_Click(object sender, EventArgs e) // exists to check functions
+        private void button1_Click(object sender, EventArgs e) // exists to check functions
          {
              DateTime now = DateTime.Now;
              WindamsController WC = new WindamsController("http://testing.inspectools.net/webservices/");
@@ -2347,9 +1941,8 @@ namespace ITGeoTagger
                 this.Table.Controls.Add(new Label() { Text = "Post-Procesing", Dock = DockStyle.Fill }, 6, 0);
                 this.Table.Controls.Add(new Label() { Text = "Progress", Dock = DockStyle.Fill }, 7, 0);
                 this.Table.AutoScroll = true;
-            }
-            
-        async public void AddRow(string jpegpath, string tlogpath, string offset,int imageCount ,int timeout=0)
+            }     
+            async public void AddRow(string jpegpath, string tlogpath, string offset,int imageCount ,int timeout=0)
             {
 
             timeout++;
