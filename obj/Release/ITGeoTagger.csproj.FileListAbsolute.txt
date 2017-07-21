@@ -193,9 +193,6 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\sv\ZedGraph.resources.dl
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\tr\ZedGraph.resources.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\zh-cn\ZedGraph.resources.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\zh-tw\ZedGraph.resources.dll
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\MissionPlanner.TurbineTab.resources
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\MissionPlanner.AltRemapDialog.resources
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\MissionPlanner.AltRemapSingleDialog.resources
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\MissionPlanner.ImageReleaseForm.resources
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Extensions.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Formatting.dll
@@ -206,3 +203,6 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Primitiv
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.csproj.App.config
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.UploadRelease.resources
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.ITGeotagger.resources
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.AltRemapSingleDialog.resources
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.AltRemapDialog.resources
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.TurbineTab.resources

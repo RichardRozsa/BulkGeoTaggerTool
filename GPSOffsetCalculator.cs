@@ -12,14 +12,14 @@ using MissionPlanner;
 
 namespace ITGeoTagger
 {
-    class GPSOffsetCalculator
+    public class GPSOffsetCalculator
     {
         ITGeotagger Parent_ITGeoTagger;
         public GPSOffsetCalculator(ITGeotagger parent) {
             Parent_ITGeoTagger = parent;
         }//constructor
 
-        public async Task<float> GetImagetoTriggerOffset(string dirPictures, string logFile)
+        public  async Task<float> GetImagetoTriggerOffset(string dirPictures, string logFile)
         {
             string logFilePath = Path.Combine(dirPictures, logFile);
             if (!File.Exists(logFilePath))

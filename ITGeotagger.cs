@@ -42,10 +42,16 @@ namespace ITGeoTagger
 
         public string Myprocessor ="";
 
+        
         public List<Thread> PostThreads = new List<Thread>();
         List<Thread> PreThreads = new List<Thread>();
         int PostThreadReleaseBusyCount = 0;
         int PostThreadReleaseBusyMAX = 2;
+
+        public Thread PreProcessThread;
+        public Thread PostProcessThread;
+        
+        
         private const string PHOTO_FILES_FILTER = "*.jpg;*.tif";
         private const int JXL_ID_OFFSET = 10;
 
@@ -65,17 +71,13 @@ namespace ITGeoTagger
         private int millisShutterLag = 0;
 
         private Hashtable filedatecache = new Hashtable();
-        private CheckBox chk_cammsg;
-        private TextBox txt_basealt;
-        private Label label28;
         private List<int> JXL_StationIDs = new List<int>();
+        
+        
         public ImageGroupTableInfo ATable;
         private TableLayoutPanel TabOrganizer = new TableLayoutPanel();
 
         public Dictionary<string, TabPage> MainTabs = new Dictionary<string, TabPage>();
-
-        public Thread PreProcessThread;
-        public Thread PostProcessThread;
 
         public float VerticalImageDistribution = 2;//not used here but should be
         public float cameraShutterLag = (float)1.5;

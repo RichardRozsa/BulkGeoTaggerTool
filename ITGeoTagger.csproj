@@ -126,6 +126,7 @@
       <DependentUpon>AltRemapDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Cropper.cs" />
+    <Compile Include="GPSOffsetCalculator.cs" />
     <Compile Include="ImagePassSorter.cs" />
     <Compile Include="ImageReleaseForm.cs">
       <SubType>Form</SubType>
