@@ -1480,10 +1480,6 @@ namespace ITGeoTagger
              MainTabs.Remove(baseDirectory);
 
          }
-        private void textBox1_TextChanged(object sender, EventArgs e)
-         {
-
-         }
         async public Task<ImageLocationAndExtraInfo> SaveGrayedOutImage(ImageLocationAndExtraInfo imageInfo, int LeftCrop, int RightCrop,int brightnessCorrection)
          {
              Image<Bgr, Byte> GrayedOutImage = new Image<Bgr, Byte>(imageInfo.PathToSmallImage);
@@ -1592,25 +1588,4 @@ namespace ITGeoTagger
 
           }
      }
-
-     public enum ImageLocationType { Pass1, Pass2, Pass3, Pass4, Pass5, Tip, Hub, Ground, Other, High, Low, Default }
-
-
-     public class ImageBladeGroup
-        {
-            public List<ImageLocationAndExtraInfo> FullImageList;
-            public double GPStimeOffset = 0;
-            public string BaseDirectory = "";
-            public string tlogFileName = "";
-            public string Blade = "";
-            public string AssetName = "";
-            public string SiteName = "";
-            public string Latitude = "";
-            public string Longitude = "";
-
-            public ImageBladeGroup()
-            {
-            }
-
-        }
 }

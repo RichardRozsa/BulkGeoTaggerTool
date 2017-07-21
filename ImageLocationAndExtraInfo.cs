@@ -29,4 +29,5 @@ namespace ITGeoTagger
         }
 
     }
+    public enum ImageLocationType { Pass1, Pass2, Pass3, Pass4, Pass5, Tip, Hub, Ground, Other, High, Low, Default }
 }
