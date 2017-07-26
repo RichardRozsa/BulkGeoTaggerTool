@@ -284,6 +284,12 @@ namespace ITGeoTagger
         try
         {
             Image<Bgr, Byte> ImageInput = new Image<Bgr, Byte>(inputFile);
+
+            if (RightCrop < ImageInput.Width)
+            {
+                RightCrop = ImageInput.Width - 1;
+            }
+
             Rectangle rectCrop = new Rectangle((int)(LeftCrop), 0, (int)(RightCrop - LeftCrop), ImageInput.Height);
             Image<Bgr, Byte> CroppedImg = ImageInput.GetSubRect(rectCrop);
             CroppedImg.Save(outputFile);
@@ -297,8 +303,6 @@ namespace ITGeoTagger
             return e.ToString(); 
         }
     }
-
-
     public int[] getCropValues(BladeCroppingSettings settings,Image<Bgr,Byte> image)
     {
 
@@ -539,9 +543,6 @@ namespace ITGeoTagger
         return cropVals;
 
     }
-
-    
-
     private void copyMetaData(string sourceFile, string Filename)
     {
       using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(Filename)))
