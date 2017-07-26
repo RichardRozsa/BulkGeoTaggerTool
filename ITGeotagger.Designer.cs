@@ -161,7 +161,6 @@
             this.textBox1.TabIndex = 2;
             this.textBox1.Text = "JobNumber";
             this.textBox1.Visible = false;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // MAIN_TAB_CONTROL
             // 

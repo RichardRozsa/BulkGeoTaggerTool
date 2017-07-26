@@ -75,7 +75,7 @@ namespace ITGeoTagger
             Images_pass2.Dock = DockStyle.Fill;
             Images_pass2.SetRenderer(new ImageListViewRenderers.XPRenderer());
             Images_pass2.ThumbnailSize = ImageSize;
-            Images_pass2.SortOrder = SortOrder.Ascending;
+            Images_pass2.SortOrder = Manina.Windows.Forms.SortOrder.Ascending;
 
             //set up the pass three image box
             Images_pass3.Parent = TAB_PASS_3;

@@ -55,21 +55,17 @@
       <HintPath>..\GroundPlanTool\packages\EmguCV.3.1.0.1\lib\net30\Emgu.CV.World.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GeoUtility, Version=3.1.7.5, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\GroundPlanTool\ExtLibs\GeoUtility\bin\Release\GeoUtility.dll</HintPath>
-    </Reference>
     <Reference Include="GMap.NET.WindowsForms, Version=1.7.0.0, Culture=neutral, PublicKeyToken=b85b9027b614afef, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\GroundPlanTool\ExtLibs\GMap.NET.WindowsForms\bin\Release\GMap.NET.WindowsForms.dll</HintPath>
     </Reference>
-    <Reference Include="ImageListView, Version=11.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Downloads\ImageListViewDemo\ImageListView.dll</HintPath>
+    <Reference Include="ImageListView">
+      <HintPath>packages\ImageListView.11.0.8\lib\net35\ImageListView.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\GroundPlanTool\bin\Debug\log4net.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Mission Planner\log4net.dll</HintPath>
     </Reference>
     <Reference Include="MissionPlanner.Controls, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -127,6 +123,9 @@
     </Compile>
     <Compile Include="Cropper.cs" />
     <Compile Include="GPSOffsetCalculator.cs" />
+    <Compile Include="ImageBladeGroup.cs" />
+    <Compile Include="ImageGroupTableInfo.cs" />
+    <Compile Include="ImageLocationAndExtraInfo.cs" />
     <Compile Include="ImagePassSorter.cs" />
     <Compile Include="ImageReleaseForm.cs">
       <SubType>Form</SubType>
@@ -261,14 +260,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.props')" Text="$([System.String]::Format('$(ErrorText)', '..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.props'))" />
-    <Error Condition="!Exists('..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets'))" />
-  </Target>
   <Import Project="..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets" Condition="Exists('..\GroundPlanTool\packages\EmguCV.3.1.0.1\build\EmguCV.targets')" />
   <Import Project="..\GroundPlanTool\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\GroundPlanTool\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
