@@ -65,11 +65,27 @@
     </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\Mission Planner\log4net.dll</HintPath>
+      <HintPath>ReqDLLs\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="MAVLink, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ReqDLLs\MAVLink.dll</HintPath>
+    </Reference>
+    <Reference Include="MetaDataExtractor, Version=2.4.0.28415, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ReqDLLs\MetaDataExtractor.dll</HintPath>
+    </Reference>
+    <Reference Include="MissionPlanner, Version=1.1.6386.19155, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ReqDLLs\MissionPlanner.exe</HintPath>
     </Reference>
     <Reference Include="MissionPlanner.Controls, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Release\MissionPlanner.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="MissionPlanner.Utilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ReqDLLs\MissionPlanner.Utilities.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\GroundPlanTool\packages\OpenTK.1.1.2225.0\lib\net20\OpenTK.dll</HintPath>
@@ -78,6 +94,10 @@
     <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\GroundPlanTool\packages\OpenTK.GLControl.1.1.2225.0\lib\net20\OpenTK.GLControl.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="SharpKml, Version=1.1.0.0, Culture=neutral, PublicKeyToken=e608cd7d975805ad, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>ReqDLLs\SharpKml.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -237,26 +257,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GroundPlanTool\ExtLibs\Mavlink\MAVLink.csproj">
-      <Project>{20296734-5f3c-4593-a0d5-dd20b440b13a}</Project>
-      <Name>MAVLink</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GroundPlanTool\ExtLibs\MetaDataExtractorCSharp240d\MetaDataExtractor.csproj">
-      <Project>{b46f6c6c-9184-41af-8f8b-e0084752ca7c}</Project>
-      <Name>MetaDataExtractor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GroundPlanTool\ExtLibs\SharpKml\SharpKml.csproj">
-      <Project>{53f12a60-e9cc-44bc-8366-1ae3ab2b547d}</Project>
-      <Name>SharpKml</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GroundPlanTool\ExtLibs\Utilities\MissionPlanner.Utilities.csproj">
-      <Project>{1378a66c-38e4-46f5-a05f-dc04ef7d4d16}</Project>
-      <Name>MissionPlanner.Utilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GroundPlanTool\MissionPlanner.csproj">
-      <Project>{a2e22272-95fe-47b6-b050-9ae7e2055bf5}</Project>
-      <Name>MissionPlanner</Name>
-    </ProjectReference>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
