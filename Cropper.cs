@@ -285,7 +285,7 @@ namespace ITGeoTagger
         {
             Image<Bgr, Byte> ImageInput = new Image<Bgr, Byte>(inputFile);
 
-            if (RightCrop < ImageInput.Width)
+            if (RightCrop > ImageInput.Width)
             {
                 RightCrop = ImageInput.Width - 1;
             }
