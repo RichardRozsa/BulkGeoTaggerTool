@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 using System.ComponentModel;
@@ -14,7 +15,6 @@ using System.Net.Http.Formatting;
 using System.Drawing.Imaging;
 using System.Collections.Specialized;
 using ITGeoTagger;
-
 
 namespace ITGeoTagger.WindAMSObjects
 {
@@ -100,8 +100,12 @@ namespace ITGeoTagger.WindAMSObjects
                     myAsset.location = new GeoPoint();
                     myAsset.location.accuracy = 1;     // not sure how to use this
                     myAsset.location.altitude = 0;   // should be based on turbine info imported
-                    myAsset.location.latitude = Double.Parse(ImageGroup.Latitude);   // should be based on turbine info imported
-                    myAsset.location.longitude = Double.Parse(ImageGroup.Longitude); // should be based on turbine info imported
+
+                    try { myAsset.location.latitude = Double.Parse(ImageGroup.Latitude); }// should be based on turbine info imported
+                    catch {myAsset.location.latitude = 0; };
+                    try { myAsset.location.longitude = Double.Parse(ImageGroup.Longitude); } // should be based on turbine info imported
+                    catch { myAsset.location.longitude = 0; } 
+                    
                     myAsset.make = "";
                     myAsset.model = "";
                     myAsset.name = assetName;
@@ -323,12 +327,11 @@ namespace ITGeoTagger.WindAMSObjects
             {
                 myResourceMetaData.status = "Processed";
                 await CreateResourceMetaDataAsync(myResourceMetaData);
+                return true;
             }
-
-
-
-
-            return true;
+            else {
+                return false;
+            }
         }
         
 
@@ -582,7 +585,9 @@ namespace ITGeoTagger.WindAMSObjects
                     {
                         if (item.Id == 0xA420)
                         {
-                            return System.Text.Encoding.ASCII.GetString(item.Value).TrimEnd('\0');
+                            string IDval = System.Text.Encoding.ASCII.GetString(item.Value).TrimEnd('\0');
+                            if (IDval.Length > 36) IDval = IDval.Substring(0, (IDval.Length - 1));
+                            return IDval;
                         }
                     }
                 }

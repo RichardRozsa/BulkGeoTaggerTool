@@ -972,6 +972,7 @@ namespace ITGeoTagger
                     {
                         if (item.Id == 0xA420)
                         {
+
                             NeedsUID = false;
                         }
                     }
