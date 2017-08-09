@@ -823,10 +823,25 @@ namespace ITGeoTagger
         {
             ImageListView CurrentView = GetCurrentView();
 
-            foreach (ImageListViewItem item in CurrentView.Items) {
-                ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(item.FileName)));
-                tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop,tmpinfo.brightnessCorrection);
-                item.Update();
+            if (CurrentView.SelectedItems.Count == 0)
+            {
+                foreach (ImageListViewItem item in CurrentView.Items)
+                {
+                    ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(item.FileName)));
+                    tmpinfo = await this.ParentForm.CreateSmallImages(tmpinfo);
+                    tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
+                    item.Update();
+                }
+            }
+            else {
+                foreach (ImageListViewItem item in CurrentView.SelectedItems)
+                {
+                    ImageLocationAndExtraInfo tmpinfo = ImageGroup.FullImageList.Find(x => x.PathToSmallImage.Contains(Path.GetFileName(item.FileName)));
+                    tmpinfo = await this.ParentForm.CreateSmallImages(tmpinfo);
+                    tmpinfo = await this.ParentForm.SaveGrayedOutImage(tmpinfo, tmpinfo.LeftCrop, tmpinfo.RightCrop, tmpinfo.brightnessCorrection);
+                    item.Update();
+                }
+
             }
         }
 

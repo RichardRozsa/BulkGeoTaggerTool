@@ -98,7 +98,7 @@
             this.TAB_CONTROL_TURBINE.Location = new System.Drawing.Point(3, 3);
             this.TAB_CONTROL_TURBINE.Name = "TAB_CONTROL_TURBINE";
             this.TAB_CONTROL_TURBINE.SelectedIndex = 0;
-            this.TAB_CONTROL_TURBINE.Size = new System.Drawing.Size(1224, 196);
+            this.TAB_CONTROL_TURBINE.Size = new System.Drawing.Size(1224, 202);
             this.TAB_CONTROL_TURBINE.TabIndex = 0;
             this.TAB_CONTROL_TURBINE.SelectedIndexChanged += new System.EventHandler(this.TAB_CONTROL_TURBINE_SelectedIndexChanged);
             this.TAB_CONTROL_TURBINE.TabIndexChanged += new System.EventHandler(this.TAB_CONTROL_TURBINE_TabIndexChanged);
@@ -109,7 +109,7 @@
             this.TAB_PASS_1.Location = new System.Drawing.Point(4, 25);
             this.TAB_PASS_1.Name = "TAB_PASS_1";
             this.TAB_PASS_1.Padding = new System.Windows.Forms.Padding(3);
-            this.TAB_PASS_1.Size = new System.Drawing.Size(1216, 167);
+            this.TAB_PASS_1.Size = new System.Drawing.Size(1216, 173);
             this.TAB_PASS_1.TabIndex = 0;
             this.TAB_PASS_1.Text = "1";
             this.TAB_PASS_1.Click += new System.EventHandler(this.TAB_PASS_1_Click);
@@ -120,7 +120,7 @@
             this.TAB_PASS_2.Location = new System.Drawing.Point(4, 25);
             this.TAB_PASS_2.Name = "TAB_PASS_2";
             this.TAB_PASS_2.Padding = new System.Windows.Forms.Padding(3);
-            this.TAB_PASS_2.Size = new System.Drawing.Size(1216, 167);
+            this.TAB_PASS_2.Size = new System.Drawing.Size(1216, 173);
             this.TAB_PASS_2.TabIndex = 1;
             this.TAB_PASS_2.Text = "2";
             // 
@@ -130,7 +130,7 @@
             this.TAB_PASS_3.Location = new System.Drawing.Point(4, 25);
             this.TAB_PASS_3.Name = "TAB_PASS_3";
             this.TAB_PASS_3.Padding = new System.Windows.Forms.Padding(3);
-            this.TAB_PASS_3.Size = new System.Drawing.Size(1216, 167);
+            this.TAB_PASS_3.Size = new System.Drawing.Size(1216, 173);
             this.TAB_PASS_3.TabIndex = 2;
             this.TAB_PASS_3.Text = "3";
             // 
@@ -140,7 +140,7 @@
             this.TAB_PASS_4.Location = new System.Drawing.Point(4, 25);
             this.TAB_PASS_4.Name = "TAB_PASS_4";
             this.TAB_PASS_4.Padding = new System.Windows.Forms.Padding(3);
-            this.TAB_PASS_4.Size = new System.Drawing.Size(1216, 167);
+            this.TAB_PASS_4.Size = new System.Drawing.Size(1216, 173);
             this.TAB_PASS_4.TabIndex = 3;
             this.TAB_PASS_4.Text = "4";
             // 
@@ -150,7 +150,7 @@
             this.TAB_PASS_5.Location = new System.Drawing.Point(4, 25);
             this.TAB_PASS_5.Name = "TAB_PASS_5";
             this.TAB_PASS_5.Padding = new System.Windows.Forms.Padding(3);
-            this.TAB_PASS_5.Size = new System.Drawing.Size(1216, 167);
+            this.TAB_PASS_5.Size = new System.Drawing.Size(1216, 173);
             this.TAB_PASS_5.TabIndex = 4;
             this.TAB_PASS_5.Text = "5";
             // 
@@ -160,7 +160,7 @@
             this.TAB_EXTRA.Location = new System.Drawing.Point(4, 25);
             this.TAB_EXTRA.Name = "TAB_EXTRA";
             this.TAB_EXTRA.Padding = new System.Windows.Forms.Padding(3);
-            this.TAB_EXTRA.Size = new System.Drawing.Size(1216, 167);
+            this.TAB_EXTRA.Size = new System.Drawing.Size(1216, 173);
             this.TAB_EXTRA.TabIndex = 5;
             this.TAB_EXTRA.Text = "Extra";
             // 
@@ -180,7 +180,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 120F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1236, 378);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1236, 384);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
             // tableLayoutPanel2
@@ -195,7 +195,7 @@
             this.tableLayoutPanel2.Controls.Add(this.BUT_RELEASE, 2, 0);
             this.tableLayoutPanel2.Controls.Add(this.ALT_TEXT_HELP, 1, 0);
             this.tableLayoutPanel2.Controls.Add(this.BUT_CLOSE, 0, 0);
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 331);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 337);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
@@ -470,12 +470,14 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label11.AutoSize = true;
+            this.label11.Enabled = false;
             this.label11.Location = new System.Drawing.Point(377, 0);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(143, 20);
             this.label11.TabIndex = 17;
             this.label11.Text = "Brightness";
             this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label11.Visible = false;
             // 
             // tableLayoutPanel8
             // 
@@ -487,12 +489,14 @@
             this.tableLayoutPanel8.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel8.Controls.Add(this.BUTT_BRIGHTNESS_UP, 0, 0);
             this.tableLayoutPanel8.Controls.Add(this.BUTT_BRIGHTNESS_DOWN, 1, 0);
+            this.tableLayoutPanel8.Enabled = false;
             this.tableLayoutPanel8.Location = new System.Drawing.Point(377, 23);
             this.tableLayoutPanel8.Name = "tableLayoutPanel8";
             this.tableLayoutPanel8.RowCount = 1;
             this.tableLayoutPanel8.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel8.Size = new System.Drawing.Size(143, 35);
             this.tableLayoutPanel8.TabIndex = 16;
+            this.tableLayoutPanel8.Visible = false;
             this.tableLayoutPanel8.Paint += new System.Windows.Forms.PaintEventHandler(this.tableLayoutPanel8_Paint);
             // 
             // BUTT_BRIGHTNESS_UP
@@ -669,7 +673,7 @@
             this.tableLayoutPanel6.Name = "tableLayoutPanel6";
             this.tableLayoutPanel6.RowCount = 1;
             this.tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel6.Size = new System.Drawing.Size(1230, 202);
+            this.tableLayoutPanel6.Size = new System.Drawing.Size(1230, 208);
             this.tableLayoutPanel6.TabIndex = 4;
             // 
             // TurbineTab
@@ -678,7 +682,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "TurbineTab";
-            this.Size = new System.Drawing.Size(1236, 378);
+            this.Size = new System.Drawing.Size(1236, 384);
             this.TAB_CONTROL_TURBINE.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);

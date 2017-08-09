@@ -9,9 +9,19 @@
             GMap.NET polygon
             </summary>
         </member>
+        <member name="P:GMap.NET.WindowsForms.GMapPolygon.IsVisible">
+            <summary>
+            is polygon visible
+            </summary>
+        </member>
         <member name="F:GMap.NET.WindowsForms.GMapPolygon.IsHitTestVisible">
             <summary>
             can receive input
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapPolygon.IsMouseOver">
+            <summary>
+            is mouse over
             </summary>
         </member>
         <member name="M:GMap.NET.WindowsForms.GMapPolygon.IsInsideLocal(System.Int32,System.Int32)">
@@ -63,68 +73,6 @@
             </summary>
             <param name="sender">The object that initiated the callback. The functionality for this parameter is not currently implemented.</param>
         </member>
-        <member name="P:GMap.NET.WindowsForms.GMapPolygon.IsVisible">
-            <summary>
-            is polygon visible
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapPolygon.IsMouseOver">
-            <summary>
-            is mouse over
-            </summary>
-        </member>
-        <member name="T:GMap.NET.WindowsForms.GMapMarker">
-            <summary>
-            GMap.NET marker
-            </summary>
-        </member>
-        <member name="F:GMap.NET.WindowsForms.GMapMarker.DisableRegionCheck">
-            <summary>
-            if true, marker will be rendered even if it's outside current view
-            </summary>
-        </member>
-        <member name="F:GMap.NET.WindowsForms.GMapMarker.IsHitTestVisible">
-            <summary>
-            can maker receive input
-            </summary>
-        </member>
-        <member name="M:GMap.NET.WindowsForms.GMapMarker.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>
-            Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo"/> with the data needed to serialize the target object.
-            </summary>
-            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> to populate with data.</param>
-            <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext"/>) for this serialization.</param>
-            <exception cref="T:System.Security.SecurityException">
-            The caller does not have the required permission.
-            </exception>
-        </member>
-        <member name="M:GMap.NET.WindowsForms.GMapMarker.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>
-            Initializes a new instance of the <see cref="T:GMap.NET.WindowsForms.GMapMarker"/> class.
-            </summary>
-            <param name="info">The info.</param>
-            <param name="context">The context.</param>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapMarker.LocalPosition">
-            <summary>
-            marker position in local coordinates, internal only, do not set it manualy
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapMarker.ToolTipPosition">
-            <summary>
-            ToolTip position in local coordinates
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapMarker.IsVisible">
-            <summary>
-            is marker visible
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapMarker.IsMouseOver">
-            <summary>
-            is mouse over marker
-            </summary>
-        </member>
         <member name="M:GMap.NET.WindowsForms.Markers.GMarkerGoogle.#ctor(GMap.NET.PointLatLng,System.Drawing.Bitmap)">
             <summary>
             marker using manual bitmap, NonSerialized
@@ -133,6 +81,11 @@
             <param name="Bitmap"></param>
         </member>
         <member name="T:GMap.NET.WindowsForms.ToolTips.GMapBaloonToolTip">
+            <summary>
+            GMap.NET marker
+            </summary>
+        </member>
+        <member name="T:GMap.NET.WindowsForms.ToolTips.GMapRoundedToolTip">
             <summary>
             GMap.NET marker
             </summary>
@@ -189,32 +142,57 @@
             The caller does not have the required permission.
             </exception>
         </member>
-        <member name="T:GMap.NET.WindowsForms.ToolTips.GMapRoundedToolTip">
+        <member name="T:GMap.NET.WindowsForms.GMapMarker">
             <summary>
             GMap.NET marker
             </summary>
         </member>
-        <member name="T:GMap.NET.TilePrefetcher">
+        <member name="P:GMap.NET.WindowsForms.GMapMarker.LocalPosition">
             <summary>
-            form helping to prefetch tiles on local db
+            marker position in local coordinates, internal only, do not set it manualy
             </summary>
         </member>
-        <member name="F:GMap.NET.TilePrefetcher.components">
+        <member name="P:GMap.NET.WindowsForms.GMapMarker.ToolTipPosition">
             <summary>
-            Required designer variable.
+            ToolTip position in local coordinates
             </summary>
         </member>
-        <member name="M:GMap.NET.TilePrefetcher.Dispose(System.Boolean)">
+        <member name="P:GMap.NET.WindowsForms.GMapMarker.IsVisible">
             <summary>
-            Clean up any resources being used.
+            is marker visible
             </summary>
-            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         </member>
-        <member name="M:GMap.NET.TilePrefetcher.InitializeComponent">
+        <member name="F:GMap.NET.WindowsForms.GMapMarker.DisableRegionCheck">
             <summary>
-            Required method for Designer support - do not modify
-            the contents of this method with the code editor.
+            if true, marker will be rendered even if it's outside current view
             </summary>
+        </member>
+        <member name="F:GMap.NET.WindowsForms.GMapMarker.IsHitTestVisible">
+            <summary>
+            can maker receive input
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapMarker.IsMouseOver">
+            <summary>
+            is mouse over marker
+            </summary>
+        </member>
+        <member name="M:GMap.NET.WindowsForms.GMapMarker.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Populates a <see cref="T:System.Runtime.Serialization.SerializationInfo"/> with the data needed to serialize the target object.
+            </summary>
+            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> to populate with data.</param>
+            <param name="context">The destination (see <see cref="T:System.Runtime.Serialization.StreamingContext"/>) for this serialization.</param>
+            <exception cref="T:System.Security.SecurityException">
+            The caller does not have the required permission.
+            </exception>
+        </member>
+        <member name="M:GMap.NET.WindowsForms.GMapMarker.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Initializes a new instance of the <see cref="T:GMap.NET.WindowsForms.GMapMarker"/> class.
+            </summary>
+            <param name="info">The info.</param>
+            <param name="context">The context.</param>
         </member>
         <member name="T:GMap.NET.WindowsForms.MarkerTooltipMode">
             <summary>
@@ -224,6 +202,11 @@
         <member name="T:GMap.NET.WindowsForms.GMapOverlay">
             <summary>
             GMap.NET overlay
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapOverlay.IsVisibile">
+            <summary>
+            is overlay visible
             </summary>
         </member>
         <member name="F:GMap.NET.WindowsForms.GMapOverlay.Id">
@@ -280,11 +263,6 @@
             </summary>
             <param name="sender">The object that initiated the callback. The functionality for this parameter is not currently implemented.</param>
         </member>
-        <member name="P:GMap.NET.WindowsForms.GMapOverlay.IsVisibile">
-            <summary>
-            is overlay visible
-            </summary>
-        </member>
         <member name="T:GMap.NET.WindowsForms.GMapImage">
             <summary>
             image abstraction
@@ -295,30 +273,24 @@
             image abstraction proxy
             </summary>
         </member>
-        <member name="T:System.Windows.Forms.Properties.Resources">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:System.Windows.Forms.Properties.Resources.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
-        <member name="P:System.Windows.Forms.Properties.Resources.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
         <member name="T:GMap.NET.WindowsForms.GMapRoute">
             <summary>
             GMap.NET route
             </summary>
         </member>
+        <member name="P:GMap.NET.WindowsForms.GMapRoute.IsVisible">
+            <summary>
+            is marker visible
+            </summary>
+        </member>
         <member name="F:GMap.NET.WindowsForms.GMapRoute.IsHitTestVisible">
             <summary>
             can receive input
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapRoute.IsMouseOver">
+            <summary>
+            is mouse over
             </summary>
         </member>
         <member name="M:GMap.NET.WindowsForms.GMapRoute.IsInside(System.Int32,System.Int32)">
@@ -357,24 +329,79 @@
             </summary>
             <param name="sender">The object that initiated the callback. The functionality for this parameter is not currently implemented.</param>
         </member>
-        <member name="P:GMap.NET.WindowsForms.GMapRoute.IsVisible">
-            <summary>
-            is marker visible
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapRoute.IsMouseOver">
-            <summary>
-            is mouse over
-            </summary>
-        </member>
         <member name="T:GMap.NET.WindowsForms.GMapControl">
             <summary>
             GMap.NET control for Windows Forms
             </summary>   
         </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnMarkerClick">
+            <summary>
+            occurs when clicked on marker
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnPolygonClick">
+            <summary>
+            occurs when clicked on polygon
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnRouteClick">
+            <summary>
+            occurs when clicked on route
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnRouteEnter">
+            <summary>
+            occurs on mouse enters route area
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnRouteLeave">
+            <summary>
+            occurs on mouse leaves route area
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnSelectionChange">
+            <summary>
+            occurs when mouse selection is changed
+            </summary>        
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnMarkerEnter">
+            <summary>
+            occurs on mouse enters marker area
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnMarkerLeave">
+            <summary>
+            occurs on mouse leaves marker area
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnPolygonEnter">
+            <summary>
+            occurs on mouse enters Polygon area
+            </summary>
+        </member>
+        <member name="E:GMap.NET.WindowsForms.GMapControl.OnPolygonLeave">
+            <summary>
+            occurs on mouse leaves Polygon area
+            </summary>
+        </member>
         <member name="F:GMap.NET.WindowsForms.GMapControl.Overlays">
             <summary>
             list of overlays, should be thread safe
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.MaxZoom">
+            <summary>
+            max zoom
+            </summary>         
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.MinZoom">
+            <summary>
+            min zoom
+            </summary>      
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.MouseWheelZoomType">
+            <summary>
+            map zooming type for mouse wheel
             </summary>
         </member>
         <member name="F:GMap.NET.WindowsForms.GMapControl.EmptyTileText">
@@ -397,6 +424,21 @@
             area selection pen
             </summary>
         </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.SelectedAreaFillColor">
+            <summary>
+            background of selected area
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.HelperLineOption">
+            <summary>
+            draw lines at the mouse pointer position
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.EmptyTileColor">
+            <summary>
+            color of empty tile background
+            </summary>
+        </member>
         <member name="F:GMap.NET.WindowsForms.GMapControl.MapScaleInfoEnabled">
             <summary>
             show map scale info
@@ -412,9 +454,24 @@
             if true, selects area just by holding mouse and moving
             </summary>
         </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.RetryLoadTile">
+            <summary>
+            retry count to get tile 
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.LevelsKeepInMemmory">
+            <summary>
+            how many levels of tiles are staying decompresed in memory
+            </summary>
+        </member>
         <member name="F:GMap.NET.WindowsForms.GMapControl.DragButton">
             <summary>
             map dragg button
+            </summary>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.ShowTileGridLines">
+            <summary>
+            shows tile gridlines
             </summary>
         </member>
         <member name="F:GMap.NET.WindowsForms.GMapControl.selectedArea">
@@ -549,11 +606,26 @@
             updates rotation matrix
             </summary>
         </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.IsRotated">
+            <summary>
+            returs true if map bearing is not zero
+            </summary>    
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.Bearing">
+            <summary>
+            bearing for rotation of the map
+            </summary>
+        </member>
         <member name="M:GMap.NET.WindowsForms.GMapControl.OnPaintOverlays(System.Drawing.Graphics)">
             <summary>
             override, to render something more
             </summary>
             <param name="g"></param>
+        </member>
+        <member name="P:GMap.NET.WindowsForms.GMapControl.VirtualSizeEnabled">
+            <summary>
+            shrinks map area, useful just for testing
+            </summary>
         </member>
         <member name="M:GMap.NET.WindowsForms.GMapControl.ApplyRotationInversion(System.Int32,System.Int32)">
             <summary>
@@ -620,128 +692,6 @@
             shows map dbimport dialog
             </summary>
             <returns></returns>
-        </member>
-        <member name="M:GMap.NET.WindowsForms.GMapControl.SerializeOverlays(System.IO.Stream)">
-            <summary>
-            Serializes the overlays.
-            </summary>
-            <param name="stream">The stream.</param>
-        </member>
-        <member name="M:GMap.NET.WindowsForms.GMapControl.DeserializeOverlays(System.IO.Stream)">
-            <summary>
-            De-serializes the overlays.
-            </summary>
-            <param name="stream">The stream.</param>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnMarkerClick">
-            <summary>
-            occurs when clicked on marker
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnPolygonClick">
-            <summary>
-            occurs when clicked on polygon
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnRouteClick">
-            <summary>
-            occurs when clicked on route
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnRouteEnter">
-            <summary>
-            occurs on mouse enters route area
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnRouteLeave">
-            <summary>
-            occurs on mouse leaves route area
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnSelectionChange">
-            <summary>
-            occurs when mouse selection is changed
-            </summary>        
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnMarkerEnter">
-            <summary>
-            occurs on mouse enters marker area
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnMarkerLeave">
-            <summary>
-            occurs on mouse leaves marker area
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnPolygonEnter">
-            <summary>
-            occurs on mouse enters Polygon area
-            </summary>
-        </member>
-        <member name="E:GMap.NET.WindowsForms.GMapControl.OnPolygonLeave">
-            <summary>
-            occurs on mouse leaves Polygon area
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.MaxZoom">
-            <summary>
-            max zoom
-            </summary>         
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.MinZoom">
-            <summary>
-            min zoom
-            </summary>      
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.MouseWheelZoomType">
-            <summary>
-            map zooming type for mouse wheel
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.SelectedAreaFillColor">
-            <summary>
-            background of selected area
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.HelperLineOption">
-            <summary>
-            draw lines at the mouse pointer position
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.EmptyTileColor">
-            <summary>
-            color of empty tile background
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.RetryLoadTile">
-            <summary>
-            retry count to get tile 
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.LevelsKeepInMemmory">
-            <summary>
-            how many levels of tiles are staying decompresed in memory
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.ShowTileGridLines">
-            <summary>
-            shows tile gridlines
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.IsRotated">
-            <summary>
-            returs true if map bearing is not zero
-            </summary>    
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.Bearing">
-            <summary>
-            bearing for rotation of the map
-            </summary>
-        </member>
-        <member name="P:GMap.NET.WindowsForms.GMapControl.VirtualSizeEnabled">
-            <summary>
-            shrinks map area, useful just for testing
-            </summary>
         </member>
         <member name="P:GMap.NET.WindowsForms.GMapControl.ZoomStep">
             <summary>
@@ -853,6 +803,18 @@
             occurs on empty tile displayed
             </summary>
         </member>
+        <member name="M:GMap.NET.WindowsForms.GMapControl.SerializeOverlays(System.IO.Stream)">
+            <summary>
+            Serializes the overlays.
+            </summary>
+            <param name="stream">The stream.</param>
+        </member>
+        <member name="M:GMap.NET.WindowsForms.GMapControl.DeserializeOverlays(System.IO.Stream)">
+            <summary>
+            De-serializes the overlays.
+            </summary>
+            <param name="stream">The stream.</param>
+        </member>
         <member name="F:GMap.NET.WindowsForms.ScaleModes.Integer">
             <summary>
             no scaling
@@ -862,6 +824,44 @@
             <summary>
             scales to fractional level, CURRENT VERSION DOESN'T HANDLE OBJECT POSITIONS CORRECLTY, 
             http://greatmaps.codeplex.com/workitem/16046
+            </summary>
+        </member>
+        <member name="T:GMap.NET.TilePrefetcher">
+            <summary>
+            form helping to prefetch tiles on local db
+            </summary>
+        </member>
+        <member name="F:GMap.NET.TilePrefetcher.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:GMap.NET.TilePrefetcher.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:GMap.NET.TilePrefetcher.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:System.Windows.Forms.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:System.Windows.Forms.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:System.Windows.Forms.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
             </summary>
         </member>
     </members>

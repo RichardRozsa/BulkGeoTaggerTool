@@ -9,24 +9,19 @@ using com.drew.imaging.jpg;
 using com.drew.imaging.tiff;
 using com.drew.metadata;
 using log4net;
-using SharpKml.Base;
 using SharpKml.Dom;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
-using System.Xml;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using MissionPlanner;
 using MissionPlanner.Log;
 using System.Threading;
 using System.Threading.Tasks;
-using ITGeoTagger;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
-using Emgu.Util.TypeEnum;
-using Emgu.CV.Shape;
 using ITGeoTagger.WindAMSObjects;
 
 namespace ITGeoTagger
@@ -1186,13 +1181,7 @@ namespace ITGeoTagger
                     //if they do not exist create them
                     if (!File.Exists(IM_LOC.PathToSmallImage))
                     {
-                        using (Image<Bgr, Byte> currentImage = new Image<Bgr, byte>(IM_LOC.PathToOrigionalImage))
-                        {
-                            Image<Bgr, Byte> SmallImage = currentImage.Resize(currentImage.Width / 10, currentImage.Height / 10, Inter.Linear);
-
-                            SmallImage.Save(IM_LOC.PathToSmallImage);
-                            SmallImage.Dispose();
-                        }
+                        await CreateSmallImages(IM_LOC);
                     }
                     using (Image<Bgr, Byte> currentImage = new Image<Bgr, byte>(IM_LOC.PathToSmallImage))
                     {
@@ -1481,85 +1470,104 @@ namespace ITGeoTagger
              MainTabs.Remove(baseDirectory);
 
          }
+        async public Task<ImageLocationAndExtraInfo> CreateSmallImages(ImageLocationAndExtraInfo imageInfo) {
+
+            using (Image<Bgr, Byte> currentImage = new Image<Bgr, byte>(imageInfo.PathToOrigionalImage))
+            {
+                Image<Bgr, Byte> SmallImage = currentImage.Resize(currentImage.Width / 10, currentImage.Height / 10, Inter.Linear);
+
+                SmallImage.Save(imageInfo.PathToSmallImage);
+                SmallImage.Dispose();
+            }
+            GC.Collect();
+            return imageInfo;
+
+        }
         async public Task<ImageLocationAndExtraInfo> SaveGrayedOutImage(ImageLocationAndExtraInfo imageInfo, int LeftCrop, int RightCrop,int brightnessCorrection)
          {
-             Image<Bgr, Byte> GrayedOutImage = new Image<Bgr, Byte>(imageInfo.PathToSmallImage);
+            using (Image<Bgr, Byte> GrayedOutImage = new Image<Bgr, Byte>(imageInfo.PathToSmallImage))
+            {
+                //transform to HSV
+                using (Image<Hsv, Byte> HSVCropImage = GrayedOutImage.Convert<Hsv, Byte>())
+                {
 
-             //transform to HSV
-             Image<Hsv, Byte> HSVCropImage = GrayedOutImage.Convert<Hsv, Byte>();
+                    // check boundaries
+                    // for each pixel in the graayed out region set the saturation to 20
+                    // divide the value by 3 
+                    //convert pixel to grayed out pixels
+                    if (brightnessCorrection != 0)
+                    {
+                        for (int i = 0; i < GrayedOutImage.Width; i++)
+                        {
+                            for (int j = 0; j < HSVCropImage.Height; j++)
+                            {
+                                Byte val = HSVCropImage.Data[j, i, 2];
+                                if ((int)val + brightnessCorrection <= 0)
+                                {
+                                    HSVCropImage.Data[j, i, 2] = 0;
+                                }
+                                else if ((int)val + brightnessCorrection >= 255)
+                                {
+                                    HSVCropImage.Data[j, i, 2] = 255;
+                                }
 
-             // check boundaries
-             // for each pixel in the graayed out region set the saturation to 20
-             // divide the value by 3 
-                 //convert pixel to grayed out pixels
-             if (brightnessCorrection != 0)
-             {
-                 for (int i = 0; i < GrayedOutImage.Width; i++)
-                 {
-                     for (int j = 0; j < HSVCropImage.Height; j++)
-                     {
-                         Byte val = HSVCropImage.Data[j, i, 2];
-                         if ((int)val + brightnessCorrection<=0)
-                         {
-                            HSVCropImage.Data[j, i, 2] = 0;
-                         }
-                         else if ((int)val+brightnessCorrection>=255) {
-                             HSVCropImage.Data[j, i, 2] = 255;
-                         }
+                                else
+                                {
+                                    val = (Byte)((int)val + brightnessCorrection);
+                                    HSVCropImage.Data[j, i, 2] = val;
+                                }
+                            }
+                        }
+                    }
 
-                         else
-                         {
-                             val = (Byte)((int)val + brightnessCorrection);
-                             HSVCropImage.Data[j, i, 2] = val;
-                         }
-                     }
-                 }
-             }
+                    if ((LeftCrop > 0) && (LeftCrop < RightCrop))
+                    {
+                        //convert pixel to grayed out pixels
+                        for (int i = 0; i < LeftCrop; i++)
+                        {
+                            for (int j = 0; j < HSVCropImage.Height; j++)
+                            {
 
-             if ((LeftCrop > 0) && (LeftCrop < RightCrop))
-             {
-                 //convert pixel to grayed out pixels
-                 for (int i = 0; i < LeftCrop; i++)
-                 {
-                     for (int j = 0; j < HSVCropImage.Height; j++)
-                     {
+                                HSVCropImage.Data[j, i, 1] = 20;
 
-                         HSVCropImage.Data[j, i, 1] = 20;
+                                Byte val = HSVCropImage.Data[j, i, 2];
+                                val = (Byte)((int)val / 3);
+                                HSVCropImage.Data[j, i, 2] = val;
+                            }
+                        }
+                    }
+                    if ((RightCrop < GrayedOutImage.Width) && (LeftCrop < RightCrop))
+                    {
+                        //convert pixel to grayed out pixels
+                        for (int i = RightCrop; i < GrayedOutImage.Width; i++)
+                        {
+                            for (int j = 0; j < HSVCropImage.Height; j++)
+                            {
+                                GrayedOutImage.Data[j, i, 1] = 20;
 
-                         Byte val = HSVCropImage.Data[j, i, 2];
-                         val = (Byte)((int)val / 3);
-                         HSVCropImage.Data[j, i, 2] = val;
-                     }
-                 }
-             }
-             if ((RightCrop < GrayedOutImage.Width) && (LeftCrop < RightCrop))
-             {
-                 //convert pixel to grayed out pixels
-                 for (int i = RightCrop; i < GrayedOutImage.Width; i++)
-                 {
-                     for (int j = 0; j < HSVCropImage.Height; j++)
-                     {
-                         GrayedOutImage.Data[j, i, 1] = 20;
-
-                         Byte val = HSVCropImage.Data[j, i, 2];
-                         val = (Byte)((int)val / 3);
-                         HSVCropImage.Data[j, i, 2] = val;
-                     }
-                 }
-             }
+                                Byte val = HSVCropImage.Data[j, i, 2];
+                                val = (Byte)((int)val / 3);
+                                HSVCropImage.Data[j, i, 2] = val;
+                            }
+                        }
+                    }
 
 
-             //transform back to BGR
-             GrayedOutImage = HSVCropImage.Convert<Bgr, Byte>();
-             if (!Directory.Exists(Path.GetDirectoryName(imageInfo.PathToGreyImage)))
-             {
-                 Directory.CreateDirectory(Path.GetDirectoryName(imageInfo.PathToGreyImage));
-             }
+                    //transform back to BGR
+                    using (Image<Bgr, Byte> NewGrayedOutImage = HSVCropImage.Convert<Bgr, Byte>())
+                    {
+                        if (!Directory.Exists(Path.GetDirectoryName(imageInfo.PathToGreyImage)))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(imageInfo.PathToGreyImage));
+                        }
 
-             CvInvoke.PutText(GrayedOutImage, imageInfo.Altitude.ToString("G4"), new System.Drawing.Point(GrayedOutImage.Width - 100, 35), FontFace.HersheyComplex, 1.0, new Bgr(0, 255, 0).MCvScalar);
-             GrayedOutImage.Save(imageInfo.PathToGreyImage);
-             GrayedOutImage.Dispose();
-             return imageInfo;
+                        CvInvoke.PutText(NewGrayedOutImage, imageInfo.Altitude.ToString("G4"), new System.Drawing.Point(NewGrayedOutImage.Width - 100, 35), FontFace.HersheyComplex, 1.0, new Bgr(0, 255, 0).MCvScalar);
+                        NewGrayedOutImage.Save(imageInfo.PathToGreyImage);
+                    }
+                }
+            }
+            GC.Collect();
+            return imageInfo;
          }
         private void button1_Click(object sender, EventArgs e) // exists to check functions
          {
