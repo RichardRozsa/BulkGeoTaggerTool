@@ -420,49 +420,63 @@ namespace ITGeoTagger
 
         }
 
-        private void BUT_RELEASE_Click(object sender, EventArgs e)
+        private async void BUT_RELEASE_Click(object sender, EventArgs e)
         {
-                SaveProgress();
-                using (var form = new UploadRelease(this.ParentForm.appSavedData.workOrderNumber, this.ImageGroup.SiteName, this.ImageGroup.AssetName, this.ImageGroup.Blade, this.ParentForm.appSavedData.processorName))
+            SaveProgress();
+            using (var form = new UploadRelease(this.ParentForm.appSavedData.workOrderNumber, this.ImageGroup.SiteName, this.ImageGroup.AssetName, this.ImageGroup.Blade, this.ParentForm.appSavedData.processorName))
+            {
+                var result = form.ShowDialog();
+                if (result == DialogResult.OK)
                 {
-                    var result = form.ShowDialog();
-                    if (result == DialogResult.OK)
+                    this.ImageGroup.Blade = form.blade;
+                    this.ImageGroup.AssetName = form.assetName;
+                    this.ImageGroup.SiteName = form.site;
+                    this.ParentForm.appSavedData.workOrderNumber = form.workOrderNumber;
+                    this.ParentForm.appSavedData.processorName = form.processor;
+                    this.ParentForm.appSavedData.SaveFile();
+
+                    WindAMSObjects.WindamsController tmpPreCheck = new WindAMSObjects.WindamsController(this.ParentForm.appSavedData.upload_URL);
+                    WindAMSObjects.Site tmpSite = await tmpPreCheck.GetSiteByWorkOrder(this.ParentForm.appSavedData.workOrderNumber);
+                    if (tmpSite != null)
                     {
-                        this.ImageGroup.Blade = form.blade;
-                        this.ImageGroup.AssetName = form.assetName;
-                        this.ImageGroup.SiteName = form.site;
-                        this.ParentForm.appSavedData.workOrderNumber = form.workOrderNumber;
-                        this.ParentForm.appSavedData.processorName = form.processor;
-                        this.ParentForm.appSavedData.SaveFile();
-
-                        this.ParentForm.RemoveTabFromMainTabControl(this.ImageGroup.BaseDirectory);
-                        this.ParentForm.EnableDisableButton((Button)this.ParentForm.ATable.Table.GetControlFromPosition(6, row), false, Color.Yellow, "Reviewed");
-                        try
+                        if (tmpSite.name == this.ImageGroup.SiteName)
                         {
-                            this.ParentForm.AppendLogTextBox("\n\nThread to process" + this.ImageGroup.BaseDirectory + " added to que\n");
-                            this.ParentForm.MY_IT_ThreadManager.PostThreads.Add(new Thread(() => this.ParentForm.GeotagimagesCropandUpload(ImageGroup, this.PostProccessProgresBar, this.row, form.workOrderNumber, form.processor)));
-                            DisposeSelf();
+                            this.ParentForm.RemoveTabFromMainTabControl(this.ImageGroup.BaseDirectory);
+                            this.ParentForm.EnableDisableButton((Button)this.ParentForm.ATable.Table.GetControlFromPosition(6, row), false, Color.Yellow, "Reviewed");
+                            try
+                            {
+                                this.ParentForm.AppendLogTextBox("\n\nThread to process" + this.ImageGroup.BaseDirectory + " added to que\n");
+                                this.ParentForm.MY_IT_ThreadManager.PostThreads.Add(new Thread(() => this.ParentForm.GeotagimagesCropandUpload(ImageGroup, this.PostProccessProgresBar, this.row, form.workOrderNumber, form.processor)));
+                                DisposeSelf();
 
+                            }
+                            catch (Exception er)
+                            {
+                                this.ParentForm.AppendLogTextBox("FAILED while waiting to start post processing thread for " + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + er.Message);
+                            }
                         }
-                        catch (Exception er)
+                        else
                         {
-                            this.ParentForm.AppendLogTextBox("FAILED while waiting to start post processing thread for " + this.ImageGroup.BaseDirectory + "\n***ERROR***\n" + er.Message);
+                            MessageBox.Show("Work order and site mismatch.\nWork order is for the site: "+ tmpSite.name+ "\nSite name entered: " + this.ImageGroup.SiteName +"\nSite name and work order must be exact match");
                         }
-
-
                     }
                     else {
-                        return;
+                        MessageBox.Show("No site associated with workorder number " + this.ParentForm.appSavedData.workOrderNumber);
                     }
+
                 }
-                //ImageReleaseForm ReleaseForm = new ImageReleaseForm(,,)
+                else {
+                    return;
+                }
+            }
+            //ImageReleaseForm ReleaseForm = new ImageReleaseForm(,,)
 
-                //open release form input info
-                //if it returns with and "ok" we can create the upload file
-                //if not cancle
+            //open release form input info
+            //if it returns with and "ok" we can create the upload file
+            //if not cancle
 
-                //write to status button
-                //call a function in ITG to remove itself
+            //write to status button
+            //call a function in ITG to remove itself
                 
         }
 

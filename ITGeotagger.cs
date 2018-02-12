@@ -830,7 +830,7 @@ namespace ITGeoTagger
                                 using (Cropper Crop = new Cropper())
                                 {
                                     BladeCroppingSettings CropSettings = new BladeCroppingSettings(0, 0);
-                                    string tmpERRORSTRING = Crop.JustCrop(CropSettings, ImageLocInfo.PathToGeoTaggedImage, ImageLocInfo.PathToDestination, ImageLocInfo.LeftCrop * 10, ImageLocInfo.RightCrop * 10);
+                                    string tmpERRORSTRING = Crop.JustCropandBrightness(CropSettings, ImageLocInfo.PathToGeoTaggedImage, ImageLocInfo.PathToDestination, ImageLocInfo.LeftCrop * 10, ImageLocInfo.RightCrop * 10,ImageLocInfo.brightnessCorrection);
                                     if (tmpERRORSTRING != "OK")
                                     {
                                         AppendLogTextBox("\nFAILED to Crop " + Path.GetFileName(ImageLocInfo.PathToGeoTaggedImage) + "\n***ERROR***\n" + tmpERRORSTRING);
@@ -1561,7 +1561,7 @@ namespace ITGeoTagger
                             Directory.CreateDirectory(Path.GetDirectoryName(imageInfo.PathToGreyImage));
                         }
 
-                        CvInvoke.PutText(NewGrayedOutImage, imageInfo.Altitude.ToString("G4"), new System.Drawing.Point(NewGrayedOutImage.Width - 100, 35), FontFace.HersheyComplex, 1.0, new Bgr(0, 255, 0).MCvScalar);
+                        CvInvoke.PutText(NewGrayedOutImage, imageInfo.Altitude.ToString("G3"), new System.Drawing.Point(NewGrayedOutImage.Width - 120, 45), FontFace.HersheyPlain,3.0, new Bgr(0, 255, 0).MCvScalar,3);
                         NewGrayedOutImage.Save(imageInfo.PathToGreyImage);
                     }
                 }

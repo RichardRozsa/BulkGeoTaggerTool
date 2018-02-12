@@ -196,3 +196,10 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\x86\cvextern.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\x86\msvcp140.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\x86\opencv_ffmpeg320.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\x86\vcruntime140.dll
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\Emgu.CV.UI.GL.dll
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\System.Net.Http.Extensions.dll
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\System.Net.Http.Primitives.dll
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\Emgu.CV.UI.GL.xml
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\System.Net.Http.Extensions.xml
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Debug\System.Net.Http.Primitives.xml
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Debug\ITGeoTagger.csproj.App.config

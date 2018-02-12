@@ -73,7 +73,6 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\log4net.xml
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\MAVLink.pdb
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\MAVLink.xml
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\MissionPlanner.pdb
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\MissionPlanner.exe.config
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\MissionPlanner.Controls.pdb
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\MissionPlanner.Utilities.pdb
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\OpenTK.xml
@@ -176,7 +175,6 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\AltitudeAngelWings.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\GeoJSON.Net.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\tlogThumbnailHandler.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Reactive.PlatformServices.dll
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Data.SqlServerCe.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\DotNetOpenAuth.OAuth2.Client.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Reactive.Windows.Threading.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\DotNetOpenAuth.Core.dll
@@ -185,10 +183,8 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\DotNetOpenAuth.OAuth2.dl
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\SharpKml.pdb
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\SharpKml.xml
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\AltitudeAngelWings.pdb
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\AltitudeAngelWings.dll.config
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\GeoJSON.Net.xml
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\tlogThumbnailHandler.pdb
-C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\solo.exe.config
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Reactive.PlatformServices.xml
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\DotNetOpenAuth.OAuth2.Client.xml
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Reactive.Windows.Threading.xml
@@ -198,3 +194,8 @@ C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\DotNetOpenAuth.OAuth2.xm
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.csprojResolveAssemblyReference.cache
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\Emgu.CV.UI.GL.dll
 C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\Emgu.CV.UI.GL.xml
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\obj\Release\ITGeoTagger.csproj.App.config
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Extensions.dll
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Primitives.dll
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Extensions.xml
+C:\Users\Kevin\Documents\GitHub\ITGeoTagger\bin\Release\System.Net.Http.Primitives.xml

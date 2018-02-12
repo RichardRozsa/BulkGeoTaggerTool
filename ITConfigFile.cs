@@ -56,12 +56,12 @@ namespace ITGeoTagger
         public ITConfigFile Defaults()
         {
             this.processorName = "not entered";
-            this.upload_URL = "http://testing.inspectools.net/webservices/";
+            this.upload_URL = "https://services.inspectools.net/";
             this.triggerChannel = "7";
             this.triggerThreshold = 1480;
             this.triggerHighOrLow = 0;
             this.workOrderNumber = "not entered";
-            
+            this.SaveFile();
             return this;
         }
 

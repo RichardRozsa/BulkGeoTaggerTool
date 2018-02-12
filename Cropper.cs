@@ -279,7 +279,7 @@ namespace ITGeoTagger
         }
     }
 
-    public String JustCrop(BladeCroppingSettings settings, string inputFile, string outputFile, int LeftCrop, int RightCrop)
+    public String JustCropandBrightness(BladeCroppingSettings settings, string inputFile, string outputFile, int LeftCrop, int RightCrop,int BrightnessCorrection)
     {
         try
         {
@@ -290,8 +290,44 @@ namespace ITGeoTagger
                 RightCrop = ImageInput.Width - 1;
             }
 
+            
+
             Rectangle rectCrop = new Rectangle((int)(LeftCrop), 0, (int)(RightCrop - LeftCrop), ImageInput.Height);
             Image<Bgr, Byte> CroppedImg = ImageInput.GetSubRect(rectCrop);
+
+
+            if (BrightnessCorrection != 0)
+            {
+                //convert to HSV
+                Image<Hsv, Byte> HSVImage = CroppedImg.Convert<Hsv, Byte>();
+
+                for (int i = 0; i < HSVImage.Width; i++)
+                {
+                    for (int j = 0; j < HSVImage.Height; j++)
+                    {
+                        Byte val = HSVImage.Data[j, i, 2];
+                        if ((int)val + BrightnessCorrection <= 0)
+                        {
+                            HSVImage.Data[j, i, 2] = 0;
+                        }
+                        else if ((int)val + BrightnessCorrection >= 255)
+                        {
+                            HSVImage.Data[j, i, 2] = 255;
+                        }
+
+                        else
+                        {
+                            val = (Byte)((int)val + BrightnessCorrection);
+                            HSVImage.Data[j, i, 2] = val;
+                        }
+                    }
+                   
+                }
+                CroppedImg = HSVImage.Convert<Bgr, Byte>();
+                HSVImage.Dispose();
+            }
+
+
             CroppedImg.Save(outputFile);
             ImageInput.Dispose();
             CroppedImg.Dispose();
