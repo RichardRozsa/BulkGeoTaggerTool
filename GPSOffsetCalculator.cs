@@ -196,7 +196,7 @@ namespace ITGeoTagger
             //filter out tlog images
             foreach (string file in tmpImageFileList)
             {
-                if (!file.Contains("tlog"))
+                if (!Path.GetExtension(file).Contains("tlog"))
                 {
                     ImageFileList.Add(file);
                 }
