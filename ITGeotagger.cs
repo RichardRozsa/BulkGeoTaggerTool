@@ -976,7 +976,7 @@ namespace ITGeoTagger
                             NeedsUID = false;
                         }
                     }
-                    if (NeedsUID)
+                    if(true) //(NeedsUID)//
                     {
                         Guid UID = Guid.NewGuid();
                         pi[0].Id = 0xA420;
@@ -1317,6 +1317,18 @@ namespace ITGeoTagger
 
         }
 
+        public static float? GetAltitude(Image targetImg)
+        {
+            try
+                //Property Item 0x0006 - PropertyTagAltitude
+                PropertyItem propItemAlt = targetImg.GetPropertyItem(6);
+                return ExifAltitudeToFloat(propItemAlt);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
         public static float? GetLatitude(Image targetImg)
         {
             try
@@ -1346,6 +1358,15 @@ namespace ITGeoTagger
             {
                 return null;
             }
+        }
+
+        private static float ExifAltitudeToFloat(PropertyItem propItem)
+        {
+            uint degreesNumerator = BitConverter.ToUInt32(propItem.Value, 0);
+            uint degreesDenominator = BitConverter.ToUInt32(propItem.Value, 4);
+            float altutude = degreesNumerator / (float)degreesDenominator;
+
+            return altutude;
         }
         private static float ExifGpsToFloat(PropertyItem propItemRef, PropertyItem propItem)
         {
