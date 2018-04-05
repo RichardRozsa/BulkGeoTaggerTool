@@ -75,7 +75,7 @@ namespace ITGeoTagger.WindAMSObjects
             //check if asset exists in the site
             AssetSearchBean ASB = new AssetSearchBean();
             ASB.siteId = myWorkOrder.siteId;
-            ASB.assetType = "Wind_Turbine_Tower";
+            ASB.assetType = AssetType.Wind_Turbine_Tower;
             ASB.name = assetName;
             Asset[] myAssets = await SearchAssetsAsync(ASB);
             Asset myAsset = new Asset();
@@ -334,7 +334,57 @@ namespace ITGeoTagger.WindAMSObjects
             }
         }
         
+                async public Task<Site> GetSiteByWorkOrder(string workOrderNumber)
+        {
+            try
+            {//search for workorder
+                WorkOrder tmpWorkOrder = await this.GetWorkOrderAsync(workOrderNumber);
+                
+                if (tmpWorkOrder != null)
+                {
+                    Site tmpSite = await GetSiteByID(tmpWorkOrder.siteId);
+                    if (tmpSite != null) {
 
+                            return tmpSite;                   }
+                    return null;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+                return null;
+            }
+        }
+        async public Task<Asset[]> GetAssetsFromWorkOrder(string workOrderNumber)
+        {
+            try
+            {//search for workorder
+                WorkOrder tmpWorkOrder = await this.GetWorkOrderAsync(workOrderNumber);
+                if (tmpWorkOrder != null)
+                {
+                    AssetSearchBean ASB = new AssetSearchBean();
+                    ASB.name = null;
+                    ASB.assetType = AssetType.Wind_Turbine_Tower;
+                    ASB.siteId = tmpWorkOrder.siteId;
+
+                    return await SearchAssetsAsync(ASB);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+                return null;
+            }
+        }
         //#######################################  Object Bean Search Functions  ##############################################
         async Task<Site[]> GetSitesArrayAsync()
         {
@@ -356,13 +406,13 @@ namespace ITGeoTagger.WindAMSObjects
             }
             return Sites;
         }
-        async Task<Site[]> GetSiteByID(string ID)
+        async Task<Site> GetSiteByID(string ID)
         {
-            Site[] Sites = null;
+            Site Sites = null;
             HttpResponseMessage response = await this.windAMSClient.GetAsync("site/" + ID);
             if (response.IsSuccessStatusCode)
             {
-                Sites = await response.Content.ReadAsAsync<Site[]>();
+                Sites = await response.Content.ReadAsAsync<Site>();
             }
             return Sites;
         }
